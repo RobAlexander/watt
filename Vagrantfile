@@ -3,10 +3,11 @@
 
 VAGRANTFILE_API_VERSION = "2"
 
-GIT_BRANCH = `git rev-parse --abbrev-ref HEAD`.strip
-if(GIT_BRANCH == "master") then
-  GIT_BRANCH = "default"
+git_branch = `git rev-parse --abbrev-ref HEAD`.strip
+if(git_branch == "master") then
+  git_branch = "default"
 end
+GIT_BRANCH = git_branch
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
