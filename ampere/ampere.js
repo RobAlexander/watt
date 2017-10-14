@@ -62,6 +62,6 @@ function parseOptions(args) {
 }
 
 function checkMutatorExists(mutator) {
-    var path = ampereDirectory + "/mutators/" + mutator + ".json";
+    var path = ampereDirectory + "/mutators/" + mutator + ".js";
     return fs.exists(path);
 }
