@@ -12,4 +12,4 @@ Webpage mutator written as a series of scripts which are used by PhantonJS to ap
 
 Reference pages are stored within the `ampere/pages` folder.  Pages which are to be used in mutation testing, which include copies of the original pages and pages with the specified mutations applied are stored in the `run\pages` directory.
 
-Mutations are stored in the `ampere/mutations` directory.  Mutations are stored with the mutation operator name as the filename and conform to the mutation specification.
+Mutators are stored in the `ampere/mutators` directory.  Mutators are stored with the mutation operator name as the filename and conform to the mutator specification.
