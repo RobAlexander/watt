@@ -6,7 +6,7 @@ function Mutator(name, description) {
 }
 
 Mutator.prototype.eligibleElements = function(page) {
-    return page.evaluate(this.findElementsPageContext());
+    return page.evaluate(this.findElementsPageContext);
 }
 
 Mutator.prototype.mutate = function(element) {
