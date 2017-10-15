@@ -1,4 +1,4 @@
-#!/bin/phantomjs
+#!/bin/node
 
 /* Ampere (HTML and CSS Mutation script)
  *
@@ -8,67 +8,69 @@
 "use strict";
 
 require('../common/common'); // Used to patch in some common extra functionality
-var system = require('system'), fs = require('fs'), webpage = require('webpage');
+var fs = require('fs'), path = require("path"), jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 
 var ampereName = "Ampere";
 var ampereVersion = "0.0.1";
-var ampereDirectory = fs.workingDirectory;
+var ampereDirectory = process.cwd();
 if (!ampereDirectory.endsWith(ampereName.toLowerCase())) {
-    ampereDirectory += fs.separator + ampereName.toLowerCase();
+    ampereDirectory += path.sep + ampereName.toLowerCase();
 }
-var generatedPagesDirectory = "run" + fs.separator + "pages";
+var generatedPagesDirectory = "run" + path.sep + "pages";
 
 console.log(ampereName + " " + ampereVersion);
 
-var options = parseOptions(system.args);
+var options = parseOptions(process.argv);
 if (options === false) {
-    console.log("Usage: " + system.args[0] + " [-s] <page> [<mutation> ..]");
+    console.log("Usage: " + process.argv[1] + " [-s] <page> [<mutation> ..]");
     console.log("    -s: Only apply mutation to the first matching mutation instance");
-    phantom.exit(1);
+    process.exit(1);
 }
-if (!fs.exists(options.page)) {
+if (!fs.existsSync(options.page)) {
     console.error("Page " + options.page + " not found");
-    phantom.exit(2);
+    process.exit(2);
 } else {
-    options.page = fs.absolute(options.page);
+    options.page = path.resolve(options.page);
 }
 options.mutations.forEach(function(element) {
     if (!checkMutatorExists(element)) {
         console.error(element + " mutator not found");
-        phantom.exit(2);
+        process.exit(2);
     }
 }, this);
 
 // Load the base page
-var page = webpage.create();
-page.open("file:///" + options.page, function(status) {
-    if (status !== 'success') {
-        console.error("Unable to load page");
-        phantom.exit(2);
-    } else {
-        // Mutate according to mutators specified
-        options.mutations.forEach(function(mutationOperator) {
-            var mutator = require('./mutators/' + mutationOperator);
-            console.log("Performing mutations with " + mutator.name);
-            var mutants = mutatePage(page, mutator, (options.options.indexOf('s') != -1 ? 1 : Infinity));
-            
-            for(var i = 0; i < mutants.length; i++) {
-                fs.makeTree(generatedPagesDirectory);
-                fs.write(page.url.split("/").pop().split(".")[0] + "." + mutationOperator + "." + i + ".html", mutants[i].content, 'w');
-            }
-        }, this);
+var page = new JSDOM(fs.readFileSync(options.page, "utf8"), {runScripts: "outside-only"});
+    
+// Mutate according to mutators specified
+options.mutations.forEach(function(mutationOperator) {
+    var mutator = require('./mutators/' + mutationOperator);
+    console.log("Performing mutations with " + mutator.name);
+    var mutants = mutatePage(page, mutator, (options.options.indexOf('s') != -1 ? 1 : Infinity));
+    
+    makeDirectoryTree(generatedPagesDirectory);
+    var originalPageName = options.page.split(path.sep).pop().split(".")[0];
+    fs.writeFileSync(path.join(generatedPagesDirectory, originalPageName + ".html"), page.serialize());
+    for(var i = 0; i < mutants.length; i++) {
+        var fileName = originalPageName + "." + mutationOperator + "." + i + ".html";
 
-        phantom.exit(0);
+        // Replace the page document with the mutant's to ensure we maintain the doctype when serializing
+        page.window.document.replaceChild(mutants[i].window.document.documentElement, page.window.document.documentElement);
+
+        fs.writeFileSync(path.join(generatedPagesDirectory, fileName), page.serialize());
     }
-});
+}, this);
+
+process.exit(0);
 
 
 function parseOptions(args) {
-    if (args.length <= 2) {
+    if (args.length < 4) {
         return false;
     }
     var options = [], page, mutations=[];
-    var i = 1;
+    var i = 2; // NodeJS args contain both the node executable and the script name
     // Options
     while (args[i].startsWith('-')) {
         options.push(args[i].substring(1));
@@ -86,8 +88,23 @@ function parseOptions(args) {
 }
 
 function checkMutatorExists(mutator) {
-    var path = ampereDirectory + fs.separator + "mutators" + fs.separator + mutator + ".js";
-    return fs.exists(path);
+    var mutatorPath = ampereDirectory + path.sep + "mutators" + path.sep + mutator + ".js";
+    return fs.existsSync(mutatorPath);
+}
+
+function makeDirectoryTree(directoryPath) {
+    var parts = directoryPath.split(path.sep);
+    var curPath = "";
+    for (var i = 0; i < parts.length; i++) {
+        curPath += parts[i] + path.sep;
+        var exists = false;
+        try {
+            exists = fs.statSync(curPath).isDirectory();
+        } catch(e) {}
+        if (!exists) {
+            fs.mkdirSync(curPath);
+        }
+    }
 }
 
 function mutatePage(page, mutator, limit) {
@@ -103,39 +120,23 @@ function mutatePage(page, mutator, limit) {
         console.log("Mutating eligible element " + i);
 
         var match = matches[i];
-        console.log("a");
-        var revert = page.evaluate(function(match) {
-            return match.cloneNode(true);
-        }, match);
-        console.log("a");
+        var revert = match.cloneNode(true);
         var mutated = mutator.mutate(match);
-        console.log("a");
 
         // Place the mutated code into the page
-        page.evaluate(function() {
-            var parent = match.parentNode;
-            parent.replaceChild(mutated, match);
-        });
-        console.log("a");
+        var parent = match.parentNode;
+        parent.replaceChild(mutated, match);
 
         // Clone the page
-        var mutantTree = page.evaluate(function() {
-            return document.documentElement.cloneNode(true);
-        });
-        var mutantPage = webpage.create();
-        mutantPage.evaluate(function() {
-            document.replaceChild(mutantPage, document.documentElement);
-        });
-        console.log("a");
+        var mutantTree = page.window.document.documentElement.cloneNode(true);
+        var mutantPage = new JSDOM();
+        mutantPage.window.document.replaceChild(mutantTree, mutantPage.window.document.documentElement);
 
         mutants.push(mutantPage);
 
         // Revert the mutation
-        page.evaluate(function() {
-            var parent = mutated.parentNode;
-            parent.replaceChild(match, mutated);
-        });
-        console.log("a");
+        parent = mutated.parentNode;
+        parent.replaceChild(match, mutated);
     }
 
     return mutants;

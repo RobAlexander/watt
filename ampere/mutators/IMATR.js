@@ -9,7 +9,7 @@ function IMATR() {
 IMATR.prototype = Object.create(Mutator.prototype);
 IMATR.prototype.constructor = IMATR;
 
-IMATR.prototype.findElementsPageContext = function() {
+IMATR.prototype.findEligibleElementsInDocument = function(document) {
     return document.getElementsByTagName("img");
 }
 

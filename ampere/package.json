@@ -1,0 +1,8 @@
+{
+    "name": "watt-ampere",
+    "version": "0.0.1",
+    "main": "ampere.js",
+    "dependencies": {
+        "jsdom": "11.3.0"
+    }
+}

@@ -8,7 +8,7 @@ This tool can only generate and test mutants which are well formed HTML and CSS.
 
 ### Ampere
 
-Webpage mutator written as a series of scripts which are used by PhantonJS to apply mutations to a reference webpage.
+Webpage mutator written as a set of NodeJS scripts which are used to apply mutations to a reference webpage.
 
 Reference pages are stored within the `ampere/pages` folder.  Pages which are to be used in mutation testing, which include copies of the original pages and pages with the specified mutations applied are stored in the `run/pages` directory.
 
