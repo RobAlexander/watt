@@ -1,10 +1,21 @@
-class IMAT extends Mutator("IMATR", "Remove Alt Tag from image") {
-    findElementsPageContext() {
-        return document.getElementsByTagName("img");
-    }
+"use strict";
 
-    mutateElement(element) {
-        element.removeAttribute("alt");
-        return newElem;
-    }
+var Mutator = require('../mutator');
+
+function IMATR() {
+    Mutator.call(this, "IMATR", "Remove Alt Tag from image");
 }
+
+IMATR.prototype = Object.create(Mutator.prototype);
+IMATR.prototype.constructor = IMATR;
+
+IMATR.prototype.findElementsPageContext = function() {
+    return document.getElementsByTagName("img");
+}
+
+IMATR.prototype.mutateElement = function(element) {
+    element.removeAttribute("alt");
+    return element;
+}
+
+module.exports = new IMATR();

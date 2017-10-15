@@ -36,6 +36,13 @@ options.mutations.forEach(function(element) {
     }
 }, this);
 
+// Mutate according to mutators specified
+// require('./mutator');
+options.mutations.forEach(function(mutationOperator) {
+    var mutator = require('./mutators/' + mutationOperator);
+    console.log("Performing mutations with " + mutator.name);
+}, this);
+
 phantom.exit(0);
 
 
