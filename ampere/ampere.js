@@ -1,8 +1,8 @@
 #!/bin/node
 
-/* Ampere (HTML and CSS Mutation script)
+/* Ampere (HTML Mutation script)
  *
- * Performs HTML and CSS mutations on .html files
+ * Performs HTML mutations on .html files
  */
 
 "use strict";
@@ -44,6 +44,7 @@ options.mutations.forEach(function(element) {
 var page = new JSDOM(fs.readFileSync(options.page, "utf8"), {runScripts: "outside-only"});
     
 // Mutate according to mutators specified
+var totalMutants = 0;
 options.mutations.forEach(function(mutationOperator) {
     var mutator = require('./mutators/' + mutationOperator);
     console.log("Performing mutations with " + mutator.name);
@@ -59,9 +60,11 @@ options.mutations.forEach(function(mutationOperator) {
         page.window.document.replaceChild(mutants[i].window.document.documentElement, page.window.document.documentElement);
 
         fs.writeFileSync(path.join(generatedPagesDirectory, fileName), page.serialize());
+        totalMutants++;
     }
 }, this);
 
+console.log(totalMutants + " mutants generated");
 process.exit(0);
 
 
