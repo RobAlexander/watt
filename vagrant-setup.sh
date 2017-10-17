@@ -15,11 +15,20 @@ echo "===Ampere Package==="
 cd /vagrant/ampere
 npm install --no-bin-links  # See https://github.com/npm/npm/issues/9901
 
-# PhantomJS (If needed)
-#apt-get install -y phantomjs
+# Volt (Run testers)
+echo "==Volt=="
+echo "===PhantomJS==="
 # Installing via apt-get is broken (https://github.com/ariya/phantomjs/issues/14376)
-# apt-get install -y fontconfig
-# wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
-# bzip2 -d phantomjs-2.1.1-linux-x86_64.tar.bz2
-# tar -xvf phantomjs-2.1.1-linux-x86_64.tar
-# cp phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/phantomjs
+PHANTOM_VERSION=phantomjs-2.1.1-linux-x86_64
+apt-get install -y fontconfig
+wget https://bitbucket.org/ariya/phantomjs/downloads/$PHANTOM_VERSION.tar.bz2
+bzip2 -d $PHANTOM_VERSION.tar.bz2
+tar -xvf $PHANTOM_VERSION.tar
+cp $PHANTOM_VERSION/bin/phantomjs /usr/bin/phantomjs
+rm -rf $PHANTOM_VERSION
+rm -f $PHANTOM_VERSION.tar
+rm -f $PHANTOM_VERSION.tar.bz2
+
+echo "===Volt Package==="
+cd /vagrant/volt
+npm install --no-bin-links
