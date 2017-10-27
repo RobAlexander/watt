@@ -16,7 +16,8 @@ class Page:
         self._evaluations = {}
 
     def __repr__(self):
-        return self.page_name() + " with evaluations " + ", ".join(str(evaluation) for _, evaluation in self.evaluations().items())
+        return self.page_name() + " with evaluations " + \
+            ", ".join(str(evaluation) for _, evaluation in self.evaluations().items())
 
     def page_name(self):
         return self._page_name
@@ -58,32 +59,27 @@ class Evaluation:
     def failure(self):
         if self._failure is nan:
             return self.ran() - self.skipped() - self.success() - self.inconclusive()
-        else:
-            return self._failure
+        return self._failure
 
     def inconclusive(self):
         if self._inconclusive is nan:
             return self.ran() - self.skipped() - self.success() - self.failure()
-        else:
-            return self._inconclusive
+        return self._inconclusive
 
     def success(self):
         if self._success is nan:
             return self.ran() - self.skipped() - self.failure() - self.inconclusive()
-        else:
-            return self._success
+        return self._success
 
     def skipped(self):
         if self._skipped is nan:
             return self.ran() - self.failure() - self.success() - self.inconclusive()
-        else:
-            return self._skipped
+        return self._skipped
 
     def ran(self):
         if self._ran is nan:
             return self.skipped() + self.success() + self.inconclusive() + self.failure()
-        else:
-            return self._ran
+        return self._ran
 
 
 pages = {}
@@ -98,7 +94,7 @@ def build_pages_list(directory):
 def load_reports(directory):
     testers = os.listdir(directory)
     for tester in testers:
-        if tester[0] != '.' and stat.S_ISDIR(os.stat(path.join(directory,tester)).st_mode):
+        if tester[0] != '.' and stat.S_ISDIR(os.stat(path.join(directory, tester)).st_mode):
             for result in os.listdir(path.join(directory, tester)):
                 with open(path.join(directory, tester, result)) as f:
                     json_data = json.load(f)
@@ -118,7 +114,11 @@ def build_report(output):
         failures = {}
         for tool, evaluation in page_data.evaluations().items():
             failures[tool] = evaluation.failure()
-        pages_output[page_name] = {"failures": failures, "mutations": page_data.applied_mutations(), "parent": page_data.original_name() if page_data.original_name() != page_name else None}
+        pages_output[page_name] = {
+            "failures": failures,
+            "mutations": page_data.applied_mutations(),
+            "parent": page_data.original_name() if page_data.original_name() != page_name else None
+        }
     if output is not None:
         with open(output, 'w') as f:
             json.dump(pages_output, f)
@@ -137,7 +137,7 @@ def print_stats(report_object):
                 if failure is 0 and report_object[page['parent']]['failures'] is 0:
                     testers[tester]['live'] += 1
     for tester in testers.keys():
-        testers[tester]['mutation_score'] = testers[tester]['misses'] / float(mutants)
+        testers[tester]['mutation_score'] = testers[tester]['live'] / float(mutants)
 
 
     stats = {"testers": testers, "mutant_pages": mutants}

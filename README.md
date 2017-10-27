@@ -16,7 +16,7 @@ Mutators are stored in the `ampere/mutators` directory.  Mutators are stored wit
 
 ### Volt
 
-Runs tests against all pages (original and mutants) to generate reports (FUTURE and modifies into a stnadard format to allow analysis).
+Runs tests against all pages (original and mutants) to generate reports (FUTURE and modifies into a standard format to allow analysis).
 
 Results are stores in the `run/results` directory.
 
@@ -25,3 +25,9 @@ Interfaces to testing tools are stored in `volt\testers`.  Any code or binaries 
 ### Tesla
 
 Scripts to take outputs from mutation testing tools and generate basic mutation statistics from them.
+
+(FUTURE this should be able to do much more advanced data analytics than it can currently, and should really become some whole system which can allow some nice interactive analysis (such as Jupyter, or something slightly less overkilly))
+
+### Henry
+
+Bash script which removes any intermediary files in the recommended locations above.
