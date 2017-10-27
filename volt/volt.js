@@ -16,22 +16,39 @@ var voltDirectory = process.cwd();
 if (!voltDirectory.endsWith(voltName.toLowerCase())) {
     voltDirectory += path.sep + voltName.toLowerCase();
 }
-var resultsDirectory = "run" + path.sep + "results";
 
 console.log(voltName + " " + voltVersion);
 
-var options = parseOptions(process.argv);
-if (options === false) {
-    console.log("Usage: " + process.argv[1] + " <pages> [<tester> ..]");
-    process.exit(1);
-}
-if (!fs.statSync(options.pages).isDirectory()) {
-    console.error("Pages directory " + options.pages + " not found");
+// var options = parseOptions(process.argv);
+// if (options === false) {
+//     console.log("Usage: " + process.argv[1] + " <pages> [<tester> ..]");
+//     process.exit(1);
+// }
+
+const argv = require('yargs')
+            .command('$0 <pages> <results>', 'Run tests against a set of pages', (yargs) => {
+                yargs
+                .positional('pages', {describe: "The pages to test"})
+                .positional('results', {describe: "The directory to save results in"})
+            })
+            .options('testers', {
+                alias: 't',
+                array: true,
+                requiresArg: true,
+                description: "Testers to be run"
+            })
+            .argv;
+
+var pages = argv.pages;
+var resultsDirectory = argv.results;
+
+if (!fs.statSync(pages).isDirectory()) {
+    console.error("Pages directory " + pages + " not found");
     process.exit(2);
 } else {
-    options.pages = path.resolve(options.pages);
+    pages = path.resolve(pages);
 }
-options.testers.forEach(function(element) {
+argv.testers.forEach(function(element) {
     if (!checkTesterExists(element)) {
         console.error(element + " tester not found");
         process.exit(2);
@@ -41,20 +58,20 @@ options.testers.forEach(function(element) {
 // Build page list
 const checksum = require("checksum");
 var pagesData = "", pagesFile = path.join(resultsDirectory, "pages.lst");
-fs.readdirSync(options.pages).forEach(page => {
-    if (!fs.statSync(path.join(options.pages, page)).isDirectory()) {
-        pagesData += page + " " + checksum(fs.readFileSync(path.join(options.pages, page), "utf8")) + "\n";
+fs.readdirSync(pages).forEach(page => {
+    if (!fs.statSync(path.join(pages, page)).isDirectory()) {
+        pagesData += page + " " + checksum(fs.readFileSync(path.join(pages, page), "utf8")) + "\n";
     }
 });
 makeDirectoryTree(resultsDirectory);
 fs.writeFile(pagesFile, pagesData);
 
 var serverPort = 5000;
-var server = child_process.exec("node " + path.join(voltDirectory, "server.js") + " " + options.pages + " " + serverPort);
+var server = child_process.exec("node " + path.join(voltDirectory, "server.js") + " " + pages + " " + serverPort);
 
 setTimeout(function() {
     // Run each tester
-    options.testers.forEach(tester => {
+    argv.testers.forEach(tester => {
         var testerDirectory = path.join(resultsDirectory, tester);
         makeDirectoryTree(testerDirectory);
         console.log("Running tests with " + tester);
@@ -70,25 +87,9 @@ setTimeout(function() {
     process.exit(0);
 }, 5000);
 
-function parseOptions(args) {
-    if (args.length < 4) {
-        return false;
-    }
-    var pages, testers=[];
-    var i = 2; // NodeJS args contain both the node executable and the script name
-    // Pages
-    pages = args[i];
-    i++;
-    // Testers
-    for (i = i; i < args.length; i++) {
-        testers.push(args[i]);
-    }
-
-    return {pages: pages, testers: testers};
-}
 
 function checkTesterExists(tester) {
-    var testerPath = voltDirectory + path.sep + "testers" + path.sep + tester + ".sh";
+    var testerPath = path.join(voltDirectory, "testers", tester + ".sh");
     return fs.existsSync(testerPath);
 }
 

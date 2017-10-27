@@ -17,41 +17,49 @@ var ampereDirectory = process.cwd();
 if (!ampereDirectory.endsWith(ampereName.toLowerCase())) {
     ampereDirectory += path.sep + ampereName.toLowerCase();
 }
-var generatedPagesDirectory = "run" + path.sep + "pages";
 
 console.log(ampereName + " " + ampereVersion);
 
-var options = parseOptions(process.argv);
-if (options === false) {
-    console.log("Usage: " + process.argv[1] + " [-s] <page> [<mutation> ..]");
-    console.log("    -s: Only apply mutation to the first matching mutation instance");
-    process.exit(1);
-}
-if (!fs.existsSync(options.page)) {
-    console.error("Page " + options.page + " not found");
-    process.exit(2);
-} else {
-    options.page = path.resolve(options.page);
-}
-options.mutations.forEach(function(element) {
+const argv = require('yargs')
+             .command('$0 <page> <output>', 'Mutate a page', (yargs) => {
+                 yargs
+                 .positional('page', {describe: "The page to mutate"})
+                 .positional('output', {describe: "The directory to save mutants to"})
+             })
+             .options('mutators', {
+                 alias: 'm',
+                 array: true,
+                 requiresArg: true,
+                 description: "Mutators to be applied"
+             })
+             .option('single', {
+                 alias: 's',
+                 default: false,
+                 description: "Only apply the mutant in the first available position"
+             })
+             .argv;
+
+argv.mutators.forEach(function(element) {
     if (!checkMutatorExists(element)) {
         console.error(element + " mutator not found");
         process.exit(2);
     }
 }, this);
 
+var generatedPagesDirectory = argv.output;
+
 // Load the base page
-var page = new JSDOM(fs.readFileSync(options.page, "utf8"), {runScripts: "outside-only"});
+var page = new JSDOM(fs.readFileSync(argv.page, "utf8"), {runScripts: "outside-only"});
     
 // Mutate according to mutators specified
 var totalMutants = 0;
-options.mutations.forEach(function(mutationOperator) {
+argv.mutators.forEach(function(mutationOperator) {
     var mutator = require('./mutators/' + mutationOperator);
     console.log("Performing mutations with " + mutator.name);
-    var mutants = mutatePage(page, mutator, (options.options.indexOf('s') != -1 ? 1 : Infinity));
+    var mutants = mutatePage(page, mutator, (argv.single ? 1 : Infinity));
     
     makeDirectoryTree(generatedPagesDirectory);
-    var originalPageName = options.page.split(path.sep).pop().split(".")[0];
+    var originalPageName = argv.page.split(path.sep).pop().split(".")[0];
     fs.writeFileSync(path.join(generatedPagesDirectory, originalPageName + ".html"), page.serialize());
     for(var i = 0; i < mutants.length; i++) {
         var fileName = originalPageName + "." + mutationOperator + "." + i + ".html";
@@ -67,28 +75,6 @@ options.mutations.forEach(function(mutationOperator) {
 console.log(totalMutants + " mutants generated");
 process.exit(0);
 
-
-function parseOptions(args) {
-    if (args.length < 4) {
-        return false;
-    }
-    var options = [], page, mutations=[];
-    var i = 2; // NodeJS args contain both the node executable and the script name
-    // Options
-    while (args[i].startsWith('-')) {
-        options.push(args[i].substring(1));
-        i++;
-    }
-    // Page
-    page = args[i];
-    i++;
-    // Mutations
-    for (i = i; i < args.length; i++) {
-        mutations.push(args[i]);
-    }
-
-    return {options: options, page: page, mutations: mutations};
-}
 
 function checkMutatorExists(mutator) {
     var mutatorPath = ampereDirectory + path.sep + "mutators" + path.sep + mutator + ".js";
