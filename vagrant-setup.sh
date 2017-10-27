@@ -32,3 +32,8 @@ rm -f $PHANTOM_VERSION.tar.bz2
 echo "===Volt Package==="
 cd /vagrant/volt
 npm install --no-bin-links
+
+# Tesla (Analyse results)
+echo "==Tesla=="
+echo "===Python3==="
+apt-get install -y python3 python3-pip
