@@ -59,9 +59,9 @@ then
 else
     wget http://mirrors.jenkins.io/war-stable/latest/jenkins.war
 fi
-mkdir /var/jenkins
-mkdir /var/jenkins/users
-mkdir /var/jenkins/users/admin
-ln -sf /vagrant/weber/env.sh /etc/profile.d/weber.sh
+mkdir -p /var/jenkins/users/admin
+mkdir -p /var/jenkins/jobs/WATT
 ln -sf /vagrant/weber/jenkins-config.xml /var/jenkins/config.xml
 ln -sf /vagrant/weber/jenkins-user.xml /var/jenkins/users/admin/config.xml
+ln -sf /vagrant/weber/jenkins-job.xml /var/jenkins/jobs/WATT/config.xml
+ln -sf /vagrant/weber/env.sh /etc/profile.d/weber.sh

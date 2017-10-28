@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Accessibility testing against the WATT toolset</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>Pages</name>
+          <description>Directory containing pages to mutate</description>
+          <defaultValue>/vagrant/ampere/pages</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>Mutations</name>
+          <description>Space separated list of mutations to apply</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>Testers</name>
+          <description>Testers to be run</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>qwertyuiop</authToken>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>bash /vagrant/henry/henry.sh</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>node /vagrant/ampere/ampere.js pages ${Pages} run/pages -m ${Mutations}</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>node /vagrant/volt/volt.js run/pages run/results -t ${Testers}</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>python3 /vagrant/tesla/tesla.py run/results run/summary.json &gt; run/stats.json</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>run/</artifacts>
+      <allowEmptyArchive>true</allowEmptyArchive>
+      <onlyIfSuccessful>true</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
+  <buildWrappers/>
+</project>
