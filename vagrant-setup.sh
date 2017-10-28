@@ -42,3 +42,26 @@ npm install --no-bin-links
 echo "==Tesla=="
 echo "===Python3==="
 apt-get install -y python3 python3-pip
+
+# Weber (UI and Automation)
+echo "==Weber=="
+cd /vagrant/weber
+echo "===Forever==="
+npm install forever -g
+
+echo "===JDK==="
+apt-get install -y default-jdk
+
+echo "===Jenkins==="
+if [ -e jenkins.war ]
+then
+    echo "Jenkins alredy installed"
+else
+    wget http://mirrors.jenkins.io/war-stable/latest/jenkins.war
+fi
+mkdir /var/jenkins
+mkdir /var/jenkins/users
+mkdir /var/jenkins/users/admin
+ln -sf /vagrant/weber/env.sh /etc/profile.d/weber.sh
+ln -sf /vagrant/weber/jenkins-config.xml /var/jenkins/config.xml
+ln -sf /vagrant/weber/jenkins-user.xml /var/jenkins/users/admin/config.xml
