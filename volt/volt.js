@@ -12,18 +12,12 @@ var fs = require('fs'), path = require("path"), child_process = require("child_p
 
 var voltName = "Volt";
 var voltVersion = "0.0.1";
-var voltDirectory = process.cwd();
+var voltDirectory = __dirname;
 if (!voltDirectory.endsWith(voltName.toLowerCase())) {
     voltDirectory += path.sep + voltName.toLowerCase();
 }
 
 console.log(voltName + " " + voltVersion);
-
-// var options = parseOptions(process.argv);
-// if (options === false) {
-//     console.log("Usage: " + process.argv[1] + " <pages> [<tester> ..]");
-//     process.exit(1);
-// }
 
 const argv = require('yargs')
             .command('$0 <pages> <results>', 'Run tests against a set of pages', (yargs) => {
@@ -66,7 +60,7 @@ fs.readdirSync(pages).forEach(page => {
 makeDirectoryTree(resultsDirectory);
 fs.writeFile(pagesFile, pagesData);
 
-var serverPort = 5000;
+var serverPort = 8090;
 var server = child_process.exec("node " + path.join(voltDirectory, "server.js") + " " + pages + " " + serverPort);
 
 setTimeout(function() {

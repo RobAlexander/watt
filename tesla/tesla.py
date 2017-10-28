@@ -148,7 +148,7 @@ if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description="Analyses results of mutation tests")
     argparser.add_argument('reports', help="Path to directory containing all reports")
     argparser.add_argument('output', help="Path to location to save summary report", default=None)
-    argv = argparser.parse_args(sys.argv[1:])
+    argv = argparser.parse_args(sys.argv[1:] if ".py" in sys.argv[0] else sys.argv)
 
     build_pages_list(argv.reports)
     load_reports(argv.reports)

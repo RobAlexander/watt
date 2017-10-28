@@ -3,5 +3,6 @@
 # aXe testing script
 #
 # Passes all arguments to axe-phantomjs.js
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-phantomjs volt/testers/axe-phantomjs.js $1 $2
+phantomjs ${DIR}/axe-phantomjs.js $1 $2
