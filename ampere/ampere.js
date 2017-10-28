@@ -13,7 +13,7 @@ const { JSDOM } = jsdom;
 
 var ampereName = "Ampere";
 var ampereVersion = "0.0.1";
-var ampereDirectory = process.cwd();
+var ampereDirectory = __dirname;
 if (!ampereDirectory.endsWith(ampereName.toLowerCase())) {
     ampereDirectory += path.sep + ampereName.toLowerCase();
 }
@@ -21,6 +21,11 @@ if (!ampereDirectory.endsWith(ampereName.toLowerCase())) {
 console.log(ampereName + " " + ampereVersion);
 
 const argv = require('yargs')
+             .command('pages <dir> <output>', 'Mutate all pages in a directory', (yargs) => {
+                 yargs
+                 .positional('dir', {describe: "The directory containing pages to mutate"})
+                 .positional('output', {describe: "The directory to save mutants to"})
+             })
              .command('$0 <page> <output>', 'Mutate a page', (yargs) => {
                  yargs
                  .positional('page', {describe: "The page to mutate"})
@@ -48,36 +53,52 @@ argv.mutators.forEach(function(element) {
 
 var generatedPagesDirectory = argv.output;
 
-// Load the base page
-var page = new JSDOM(fs.readFileSync(argv.page, "utf8"), {runScripts: "outside-only"});
-    
-// Mutate according to mutators specified
+var pagesList = [];
+if (argv.dir) {
+    fs.readdirSync(argv.dir).forEach(page => {
+        var pagePath = path.join(argv.dir, page);
+        if (!fs.statSync(pagePath).isDirectory()) {
+            pagesList.push(pagePath);
+        }
+    });
+} else {
+    pagesList = [argv.page]
+}
+
 var totalMutants = 0;
-argv.mutators.forEach(function(mutationOperator) {
-    var mutator = require('./mutators/' + mutationOperator);
-    console.log("Performing mutations with " + mutator.name);
-    var mutants = mutatePage(page, mutator, (argv.single ? 1 : Infinity));
-    
-    makeDirectoryTree(generatedPagesDirectory);
-    var originalPageName = argv.page.split(path.sep).pop().split(".")[0];
-    fs.writeFileSync(path.join(generatedPagesDirectory, originalPageName + ".html"), page.serialize());
-    for(var i = 0; i < mutants.length; i++) {
-        var fileName = originalPageName + "." + mutationOperator + "." + i + ".html";
 
-        // Replace the page document with the mutant's to ensure we maintain the doctype when serializing
-        page.window.document.replaceChild(mutants[i].window.document.documentElement, page.window.document.documentElement);
 
-        fs.writeFileSync(path.join(generatedPagesDirectory, fileName), page.serialize());
-        totalMutants++;
-    }
-}, this);
+pagesList.forEach(pagePath => {
+    // Load the base page
+    var page = new JSDOM(fs.readFileSync(pagePath, "utf8"), {runScripts: "outside-only"});
+
+    // Mutate according to mutators specified
+    argv.mutators.forEach(function(mutationOperator) {
+        var mutator = require('./mutators/' + mutationOperator);
+        console.log("Performing mutations with " + mutator.name);
+        var mutants = mutatePage(page, mutator, (argv.single ? 1 : Infinity));
+
+        makeDirectoryTree(generatedPagesDirectory);
+        var originalPageName = pagePath.split(path.sep).pop().split(".")[0];
+        fs.writeFileSync(path.join(generatedPagesDirectory, originalPageName + ".html"), page.serialize());
+        for (var i = 0; i < mutants.length; i++) {
+            var fileName = originalPageName + "." + mutationOperator + "." + i + ".html";
+
+            // Replace the page document with the mutant's to ensure we maintain the doctype when serializing
+            page.window.document.replaceChild(mutants[i].window.document.documentElement, page.window.document.documentElement);
+
+            fs.writeFileSync(path.join(generatedPagesDirectory, fileName), page.serialize());
+            totalMutants++;
+        }
+    }, this);
+});
 
 console.log(totalMutants + " mutants generated");
 process.exit(0);
 
 
 function checkMutatorExists(mutator) {
-    var mutatorPath = ampereDirectory + path.sep + "mutators" + path.sep + mutator + ".js";
+    var mutatorPath = path.join(ampereDirectory,  "mutators", mutator + ".js");
     return fs.existsSync(mutatorPath);
 }
 
