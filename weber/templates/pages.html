@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+{% block head %}
+    <style type="text/css">
+        table.success-results tr[data-success="True"] {
+            background-color: #d4edda
+        }
+
+        table.success-results tr[data-success="False"] {
+            background-color: #f8d7da
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <h1>Job {{ job['number'] }} Pages</h1>
+    {% include 'tables/pages.html' %}
+{% endblock %}

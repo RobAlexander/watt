@@ -33,41 +33,5 @@
         </tbody>
     </table>
     <h2>Page Results</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Page</th>
-                <th>Mutation</th>
-                <th>Parent</th>
-                <th>Results</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for page, data in summary.items() %}
-                <tr>
-                    <td id="{{ page }}"><a href="{{ url_for('job_page_info', job=job['number'], page=page) }}">{{ page }}</a></td>
-                    <td>
-                        <ul>
-                            {% for mutation in data['mutations'] %}
-                                <li>{{ mutation }}</li>
-                            {% endfor %}
-                        </ul>
-                    </td>
-                    <td><a href="#{{ data['parent'] }}">{{ data['parent'] }}</a></td>
-                    <td>
-                        <table class="success-results">
-                            <tbody>
-                                {% for tester, result in data['failures'].items() %}
-                                    <tr data-success="{{ data['parent'] == none or (data['parent'] != none and result != 0) }}">
-                                        <td>{{ tester }}</td>
-                                        <td>{{ result }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% include 'tables/pages.html' %}
 {% endblock %}

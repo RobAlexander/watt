@@ -1,0 +1,54 @@
+{% extends 'layout.html' %}
+{% block head %}
+<style type="text/css">
+    table.success-results tr[data-success="True"] {
+        background-color: #d4edda
+    }
+
+    table.success-results tr[data-success="False"] {
+        background-color: #f8d7da
+    }
+</style>
+{% endblock %}
+{% block body %}
+    <h1>Job {{ job['number'] }} - {{ page_name }}</h1>
+    <div class="form-group row">
+        <label for="pageName" class="col-sm-3 col-form-label">Name</label>
+        <div class="col-sm-9">
+            <p id="pageName"><a href="{{ url_for('job_page_raw', job=job['number'], page=page_name) }}">{{ page_name }}</a></p>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="pageParent" class="col-sm-3 col-form-label">Parent</label>
+        <div class="col-sm-9">
+            <p id="pageParent">{% if page['parent'] != None %}<a href="{{ url_for('job_page_info', job=job['number'], page=page['parent']) }}">{{ page['parent'] }}</a>{% else %}Original{% endif %}</p>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="mutations" class="col-sm-3 col-form-label">Mutation Operators</label>
+        <div class="col-sm-9">
+            <ul id="mutations">
+                {% for mutation in page['mutations'] %}
+                    <li>{{ mutation }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <h2>Tester Results</h2>
+    <table class="table success-results">
+        <thead>
+            <tr>
+                <th>Tester</th>
+                <th>Failures</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tester, result in page['failures'].items() %}
+                <tr data-success="{{ page['parent'] == none or (page['parent'] != none and result != 0) }}">
+                    <td><a href="{{ url_for('job_page_tester', job=job['number'], page=page_name, tester=tester) }}">{{ tester }}</a></td>
+                    <td>{{ result }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
