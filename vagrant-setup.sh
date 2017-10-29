@@ -42,6 +42,7 @@ npm install --no-bin-links
 echo "==Tesla=="
 echo "===Python3==="
 apt-get install -y python3 python3-pip
+pip3 install --upgrade pip
 
 # Weber (UI and Automation)
 echo "==Weber=="
@@ -65,3 +66,6 @@ ln -sf /vagrant/weber/jenkins-config.xml /var/jenkins/config.xml
 ln -sf /vagrant/weber/jenkins-user.xml /var/jenkins/users/admin/config.xml
 ln -sf /vagrant/weber/jenkins-job.xml /var/jenkins/jobs/WATT/config.xml
 ln -sf /vagrant/weber/env.sh /etc/profile.d/weber.sh
+
+echo "===Weber Package==="
+pip3 install -r requirements.txt

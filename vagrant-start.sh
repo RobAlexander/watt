@@ -5,4 +5,5 @@ source /etc/profile.d/weber.sh
 
 echo "Starting Jenkins server"
 cd /vagrant/weber
-forever start -c bash ./jenkins.sh
+forever start -c bash jenkins.sh
+forever start -c python3 weber.py

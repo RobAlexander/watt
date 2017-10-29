@@ -17,6 +17,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     branch.vm.provision :shell, :path => "vagrant-start.sh", :run => "always"
 
     branch.vm.box = 'ubuntu/xenial64'
+    branch.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
     branch.vm.network "forwarded_port", guest: 8081, host: 8081, host_ip: "127.0.0.1"
     branch.vm.synced_folder ".", "/vagrant"
 

@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h1>WATT Jobs</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Job ID</th>
+                <th>Status</th>
+                <th>Mutators</th>
+                <th>Testers</th>
+                <th>Mutation Scores</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+                <tr>
+                    <td><a href="/job/{{ job['number'] }}">{{ job['number'] }}</a></td>
+                    <td>{{ job['status'] }}</td>
+                    <td>
+                        <ul>
+                            {% for mutator in job['mutations'] %}
+                                <li>{{ mutator }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            {% for tester in job['testers'].keys() %}
+                                <li>{{ tester }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            {% for _, tester in job['testers'].items() %}
+                                <li>{{ tester['mutation_score'] }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
