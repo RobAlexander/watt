@@ -29,6 +29,10 @@ def b64encode(value):
 def len_filter(value):
     return len(value)
 
+@app.before_request
+def before_request():
+    app.jinja_env.cache = {}
+
 def get_job_data(job, number):
     jenkins_data = jenkins.get_build_info(job, number)
     for action in jenkins_data['actions']:
