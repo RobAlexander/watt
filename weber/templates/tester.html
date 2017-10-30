@@ -1,0 +1,35 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h1>Job {{ job['number'] }} - {{ tester_name }}</h1>
+    <div class="form-group row">
+        <label for="testerScore" class="col-sm-3 col-form-label">Mutation Score</label>
+        <div class="col-sm-9">
+            <p id="testerScore">{{ job['testers'][tester_name]['mutation_score'] }}</p>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="testerLive" class="col-sm-3 col-form-label">Live Mutants</label>
+        <div class="col-sm-9">
+            <p id="testerLive">{{ job['testers'][tester_name]['live'] }}</p>
+        </div>
+    </div>
+    <h2>Page Results</h2>
+    <table class="table success-results">
+        <thead>
+            <tr>
+                <th>Page</th>
+                <th>Parent</th>
+                <th>Violations Found</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for page_name, page in summary.items() %}
+                <tr data-success="{{ (page['parent'] == none and page['failures'][tester_name] == 0) or (page['parent'] != none and page['failures'][tester_name] != 0) }}">
+                    <td id="{{ page_name }}"><a href="{{ url_for('job_page_tester', job=job['number'], page=page_name, tester=tester_name) }}">{{ page_name }}</a></td>
+                    <td>{% if page['parent'] != None %}<a href="#{{ page['parent'] }}">{{ page['parent'] }}</a>{% endif %}</td>
+                    <td>{{ page['failures'][tester_name] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

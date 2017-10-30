@@ -14,24 +14,7 @@
     <h1>Job {{ job['number'] }}</h1>
     <p><strong>Mutation operators used:</strong>&nbsp; {{ ", ".join(job['mutations']) }}</p>
     <h2>Tester Results</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Tester</th>
-                <th>Mutation Score</th>
-                <th>Live Mutants</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for tester, data in job['testers'].items() %}
-                <tr>
-                    <td>{{ tester }}</td>
-                    <td>{{ data['mutation_score'] }}</td>
-                    <td>{{ data['live'] }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% include 'tables/testers.html' %}
     <h2>Page Results</h2>
     {% include 'tables/pages.html' %}
 {% endblock %}

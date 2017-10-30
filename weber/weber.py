@@ -147,11 +147,29 @@ def job_page_tester_json(job, page, tester):
 
 @app.route('/job/<int:job>/tester')
 def job_tester(job):
-    return "Job %d Tester Menu" % job
+    job_data = get_job_data(JENKINS_JOB_NAME, job)
+    return render_template("testers.html",
+                           job=job_data,
+                           breadcrumb=[
+                               {"name": "Job", "url": url_for("job_menu")},
+                               {"name": "Job %d" % job, "url": url_for("job_info", job=job)},
+                               {"name": "Testers", "url": url_for("job_tester", job=job)}
+                           ]
+                          )
 
 @app.route('/job/<int:job>/tester/<tester>')
 def job_tester_info(job, tester):
-    return "Job %d Tester %s" % (job, tester)
+    job_data = get_job_data(JENKINS_JOB_NAME, job)
+    job_data_summary = get_job_summary(JENKINS_JOB_NAME, job)
+    return render_template("tester.html",
+                           job=job_data, tester_name=tester, summary=job_data_summary,
+                           breadcrumb=[
+                               {"name": "Job", "url": url_for("job_menu")},
+                               {"name": "Job %d" % job, "url": url_for("job_info", job=job)},
+                               {"name": "Testers", "url": url_for("job_tester", job=job)},
+                               {"name": tester, "url": url_for("job_tester_info", job=job, tester=tester)}
+                           ]
+                          )
 
 if __name__ == '__main__':
     app.config['TEMPLATES_AUTO_RELOAD'] = True

@@ -1,15 +1,4 @@
 {% extends 'layout.html' %}
-{% block head %}
-<style type="text/css">
-    table.success-results tr[data-success="True"] {
-        background-color: #d4edda
-    }
-
-    table.success-results tr[data-success="False"] {
-        background-color: #f8d7da
-    }
-</style>
-{% endblock %}
 {% block body %}
     <h1>Job {{ job['number'] }} - {{ page_name }}</h1>
     <div class="form-group row">
@@ -44,7 +33,7 @@
         </thead>
         <tbody>
             {% for tester, result in page['failures'].items() %}
-                <tr data-success="{{ page['parent'] == none or (page['parent'] != none and result != 0) }}">
+                <tr data-success="{{ (page['parent'] == none and result == 0) or (page['parent'] != none and result != 0) }}">
                     <td><a href="{{ url_for('job_page_tester', job=job['number'], page=page_name, tester=tester) }}">{{ tester }}</a></td>
                     <td>{{ result }}</td>
                 </tr>

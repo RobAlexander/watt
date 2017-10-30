@@ -1,0 +1,18 @@
+<table class="table success-results">
+    <thead>
+        <tr>
+            <th>Tester</th>
+            <th>Mutation Score</th>
+            <th>Live Mutants</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tester, data in job['testers'].items() %}
+            <tr data-success="{{ data['mutation_score'] == 0.0 }}">
+                <td><a href="{{ url_for('job_tester_info', job=job['number'], tester=tester) }}">{{ tester }}</a></td>
+                <td>{{ data['mutation_score'] }}</td>
+                <td>{{ data['live'] }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

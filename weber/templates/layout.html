@@ -9,6 +9,17 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
         <!--END Bootstrap-->
+        <!--START Custom style-->
+        <style type="text/css">
+            table.success-results tr[data-success="True"] {
+                background-color: #d4edda
+            }
+        
+            table.success-results tr[data-success="False"] {
+                background-color: #f8d7da
+            }
+        </style>
+        <!--END Custom style-->
         <title>{% if title is defined %}{{ title }} - {% endif %}WATT</title>
         {% block head %}{% endblock %}
     </head>
