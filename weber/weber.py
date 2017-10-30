@@ -3,6 +3,7 @@
 import json
 import base64
 import os
+import subprocess
 
 from flask import Flask, render_template, url_for, request, redirect
 import jenkins as jenkins_lib
@@ -18,6 +19,8 @@ JENKINS_REQUESTS_AUTH = HTTPBasicAuth('admin', 'admin')
 
 MUTATIONS_DIRECTORY = "/vagrant/ampere/mutators"
 TESTERS_DIRECTORY = "/vagrant/volt/testers"
+
+JOULE_COMMAND = "phantomjs /vagrant/joule/joule.js"
 
 app = Flask(__name__)
 jenkins = jenkins_lib.Jenkins(
@@ -51,10 +54,13 @@ def get_job_data(job, number):
         "status": status
     }
 
-def get_jenkins_artifact(job, number, artifact):
+def get_jenkins_artifact_url(job, number, artifact):
     jenkins_data = jenkins.get_build_info(job, number)
+    return jenkins_data['url'] + "artifact/run/" + artifact
+
+def get_jenkins_artifact(job, number, artifact):
     return requests.get(
-        jenkins_data['url'] + "artifact/run/" + artifact,
+        get_jenkins_artifact_url(job, number, artifact),
         auth=JENKINS_REQUESTS_AUTH
     )
 
@@ -162,8 +168,13 @@ def job_page(job):
 def job_page_info(job, page):
     job_data = get_job_data(JENKINS_JOB_NAME, job)
     job_data_summary = get_job_summary(JENKINS_JOB_NAME, job)
+    joule_command = JOULE_COMMAND.split(" ")
+    joule_command.append(get_jenkins_artifact_url(JENKINS_JOB_NAME, job, "pages/" + page))
+    joule_command.append(JENKINS_USERNAME)
+    joule_command.append(JENKINS_PASSWORD)
+    page_image = subprocess.check_output(joule_command).decode('utf-8')
     return render_template("page.html",
-                           job=job_data, page_name=page, page=job_data_summary[page],
+                           job=job_data, page_name=page, page=job_data_summary[page], page_image=page_image,
                            breadcrumb=[
                                {"name": "Job", "url": url_for("job_menu")},
                                {"name": "Job %d" % job, "url": url_for("job_info", job=job)},

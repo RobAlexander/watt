@@ -36,10 +36,13 @@ The Web UI allows viewing of previously run jobs (currently listing only the 50 
 
 Jenkins can be used to trigger jobs by running a parameterised build of the `WATT` job.  There is no checking if parameters are correct. Login using username and password `admin`.  (FUTURE something really, really should be done to give it a reasonable security setup when the server is initialised)
 
+### Joule
+
+Renders PNG versions of pages in Base64.
+
 ### Henry
 
 Bash script which removes any intermediary files in the recommended locations above.
-
 
 ## Running
 

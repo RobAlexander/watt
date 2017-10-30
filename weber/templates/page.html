@@ -1,26 +1,35 @@
 {% extends 'layout.html' %}
 {% block body %}
     <h1>Job {{ job['number'] }} - {{ page_name }}</h1>
-    <div class="form-group row">
-        <label for="pageName" class="col-sm-3 col-form-label">Name</label>
-        <div class="col-sm-9">
-            <p id="pageName"><a href="{{ url_for('job_page_raw', job=job['number'], page=page_name) }}">{{ page_name }}</a></p>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="form-group row">
+                <label for="pageName" class="col-sm-4 col-form-label">Name</label>
+                <div class="col-sm-8">
+                    <p id="pageName"><a href="{{ url_for('job_page_raw', job=job['number'], page=page_name) }}">{{ page_name }}</a></p>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="pageParent" class="col-sm-4 col-form-label">Parent</label>
+                <div class="col-sm-8">
+                    <p id="pageParent">{% if page['parent'] != None %}<a href="{{ url_for('job_page_info', job=job['number'], page=page['parent']) }}">{{ page['parent'] }}</a>{% else %}Original{% endif %}</p>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="mutations" class="col-sm-4 col-form-label">Mutation Operators</label>
+                <div class="col-sm-8">
+                    <ul id="mutations">
+                        {% for mutation in page['mutations'] %}
+                            <li>{{ mutation }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="form-group row">
-        <label for="pageParent" class="col-sm-3 col-form-label">Parent</label>
-        <div class="col-sm-9">
-            <p id="pageParent">{% if page['parent'] != None %}<a href="{{ url_for('job_page_info', job=job['number'], page=page['parent']) }}">{{ page['parent'] }}</a>{% else %}Original{% endif %}</p>
-        </div>
-    </div>
-    <div class="form-group row">
-        <label for="mutations" class="col-sm-3 col-form-label">Mutation Operators</label>
-        <div class="col-sm-9">
-            <ul id="mutations">
-                {% for mutation in page['mutations'] %}
-                    <li>{{ mutation }}</li>
-                {% endfor %}
-            </ul>
+        <div class="col-sm-6">
+            <a href="{{ url_for('job_page_raw', job=job['number'], page=page_name) }}" target="_blank">
+                <img src="data:image/png;base64,{{ page_image }}" alt="Preview image of page" />
+            </a>
         </div>
     </div>
     <h2>Tester Results</h2>
