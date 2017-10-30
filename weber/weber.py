@@ -2,17 +2,22 @@
 
 import json
 import base64
+import os
 
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, request, redirect
 import jenkins as jenkins_lib
 import requests
 from requests.auth import HTTPBasicAuth
 
 
 JENKINS_JOB_NAME = "WATT"
+JENKINS_JOB_BUILD_KEY = "qwertyuiop"
 JENKINS_USERNAME = "admin"
 JENKINS_PASSWORD = JENKINS_USERNAME
 JENKINS_REQUESTS_AUTH = HTTPBasicAuth('admin', 'admin')
+
+MUTATIONS_DIRECTORY = "/vagrant/ampere/mutators"
+TESTERS_DIRECTORY = "/vagrant/volt/testers"
 
 app = Flask(__name__)
 jenkins = jenkins_lib.Jenkins(
@@ -38,11 +43,12 @@ def get_job_data(job, number):
     for action in jenkins_data['actions']:
         if action['_class'] == 'hudson.model.ParametersAction':
             parameters = {param['name']: param['value'] for param in action['parameters']}
+    status = "BUILDING" if jenkins_data['building'] else jenkins_data['result']
     return {
         "number": number,
         "mutations": parameters['Mutations'].split(" "),
-        "testers": get_job_stats(job, number)['testers'],
-        "status": "BUILDING" if jenkins_data['building'] else jenkins_data['result']
+        "testers": get_job_stats(job, number)['testers'] if status == "SUCCESS" else {},
+        "status": status
     }
 
 def get_jenkins_artifact(job, number, artifact):
@@ -75,14 +81,56 @@ def job_menu():
 
 @app.route('/job/new', methods=['GET', 'POST'])
 def new():
-    return "New Job"
+    jenkins_info = jenkins.get_job_info(JENKINS_JOB_NAME)
+    if request.method == "POST":
+        pages = request.form['pages']
+        mutations = " ".join(request.form.getlist('mutations'))
+        testers = " ".join(request.form.getlist('testers'))
+        jenkins.build_job(
+                          JENKINS_JOB_NAME,
+                          {'Pages':pages, 'Mutations':mutations, 'Testers':testers},
+                          JENKINS_JOB_BUILD_KEY
+                         )
+        return redirect(url_for("new_wait", job=jenkins_info['nextBuildNumber']))
+    else:
+        params = {}
+        for param in jenkins_info['property'][0]['parameterDefinitions']:
+            params[param['name']] = param['defaultParameterValue']['value']
+            if params[param['name']] == "":
+                params[param['name']] = None
+        all_mutations = [f.split(".")[0] for f in os.listdir(MUTATIONS_DIRECTORY) if os.path.isfile(os.path.join(MUTATIONS_DIRECTORY, f))]
+        all_testers = [f.split(".")[0] for f in os.listdir(TESTERS_DIRECTORY) if os.path.isfile(os.path.join(TESTERS_DIRECTORY, f)) and f.split(".")[-1] == "sh"]
+        return render_template("new.html",
+                               pages=params['Pages'], mutations=params['Mutations'], testers=params['Testers'],
+                               all_mutations=all_mutations, all_testers=all_testers,
+                               breadcrumb=[
+                                   {"name": "Job", "url": url_for("job_menu")},
+                                   {"name": "New", "url": url_for("new")}
+                               ]
+                              )
+                              
+@app.route('/job/new/wait/<int:job>')
+def new_wait(job):
+    try:
+        jenkins.get_build_info(JENKINS_JOB_NAME, job)
+        return redirect(url_for("job_info", job=job))
+    except:
+        pass
+    return render_template("wait.html", job=job,
+                            breadcrumb=[
+                                {"name": "Job", "url": url_for("job_menu")},
+                                {"name": "Job %d" % job, "url": url_for("new_wait", job=job)}
+                            ]
+                           )
+
 
 @app.route('/job/<int:job>')
 def job_info(job):
     job_data = get_job_data(JENKINS_JOB_NAME, job)
-    job_data_summary = get_job_summary(JENKINS_JOB_NAME, job)
+    job_data_summary = get_job_summary(JENKINS_JOB_NAME, job) if job_data['status'] == "SUCCESS" else None
+    console = jenkins.get_build_console_output(JENKINS_JOB_NAME, job)
     return render_template("job.html",
-                           job=job_data, summary=job_data_summary,
+                           job=job_data, summary=job_data_summary, console=console,
                            breadcrumb=[
                                {"name": "Job", "url": url_for("job_menu")},
                                {"name": "Job %d" % job, "url": url_for("job_info", job=job)}

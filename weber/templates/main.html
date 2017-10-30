@@ -17,11 +17,13 @@
                     <td><a href="/job/{{ job['number'] }}">{{ job['number'] }}</a></td>
                     <td>{{ job['status'] }}</td>
                     <td>
-                        <ul>
-                            {% for mutator in job['mutations'] %}
-                                <li>{{ mutator }}</li>
-                            {% endfor %}
-                        </ul>
+                        {% if job['status'] == "SUCCESS" %}
+                            <ul>
+                                {% for mutator in job['mutations'] %}
+                                    <li>{{ mutator }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
                     </td>
                     <td>
                         <ul>
