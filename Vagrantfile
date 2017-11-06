@@ -14,7 +14,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define GIT_BRANCH do |branch|
 
     branch.vm.provision :shell, :path => "vagrant-setup.sh"
-    branch.vm.provision :shell, :path => "vagrant-start.sh", :run => "always"
+    branch.vm.provision :shell, :path => "vagrant-start.sh"
 
     branch.vm.box = 'ubuntu/xenial64'
     branch.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
