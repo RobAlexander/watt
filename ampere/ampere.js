@@ -69,6 +69,8 @@ var totalMutants = 0;
 
 
 pagesList.forEach(pagePath => {
+    console.log("Working with page " + pagePath);
+
     // Load the base page
     var page = new JSDOM(fs.readFileSync(pagePath, "utf8"), {runScripts: "outside-only"});
 
@@ -85,9 +87,9 @@ pagesList.forEach(pagePath => {
             var fileName = originalPageName + "." + mutationOperator + "." + i + ".html";
 
             // Replace the page document with the mutant's to ensure we maintain the doctype when serializing
-            page.window.document.replaceChild(mutants[i].window.document.documentElement, page.window.document.documentElement);
+            //page.window.document.replaceChild(mutants[i].window.document.documentElement, page.window.document.documentElement);
 
-            fs.writeFileSync(path.join(generatedPagesDirectory, fileName), page.serialize());
+            fs.writeFileSync(path.join(generatedPagesDirectory, fileName), mutants[i].serialize());
             totalMutants++;
         }
     }, this);
@@ -122,31 +124,27 @@ function mutatePage(page, mutator, limit) {
         limit = Infinity;
     }
 
-    var matches = mutator.eligibleElements(page);
-    console.log("Found " + matches.length + " possible mutation" + ((matches.length != 1) ? "s" : ""));
+    var matches = mutator.eligibleElements(page).length;
+    console.log("Found " + matches + " possible mutation" + ((matches != 1) ? "s" : ""));
 
     var mutants = [];
-    for (var i = 0; i < Math.min(matches.length, limit); i++) {
+    for (var i = 0; i < Math.min(matches, limit); i++) {
         console.log("Mutating eligible element " + i);
 
-        var match = matches[i];
-        var revert = match.cloneNode(true);
+        // Clone the page
+        //var mutantTree = page.window.document.documentElement.cloneNode(true);
+        var mutantPage = new JSDOM(page.serialize());
+        //mutantPage.window.document.replaceChild(mutantTree, mutantPage.window.document.documentElement);
+
+        var match = mutator.eligibleElements(mutantPage)[i]; // The match needs to be regenerated since we've cloned the page
         var mutated = mutator.mutate(match);
 
         // Place the mutated code into the page
         var parent = match.parentNode;
         parent.replaceChild(mutated, match);
 
-        // Clone the page
-        var mutantTree = page.window.document.documentElement.cloneNode(true);
-        var mutantPage = new JSDOM();
-        mutantPage.window.document.replaceChild(mutantTree, mutantPage.window.document.documentElement);
-
+        // Store cloned page
         mutants.push(mutantPage);
-
-        // Revert the mutation
-        parent = mutated.parentNode;
-        parent.replaceChild(match, mutated);
     }
 
     return mutants;
