@@ -86,9 +86,6 @@ pagesList.forEach(pagePath => {
         for (var i = 0; i < mutants.length; i++) {
             var fileName = originalPageName + "." + mutationOperator + "." + i + ".html";
 
-            // Replace the page document with the mutant's to ensure we maintain the doctype when serializing
-            //page.window.document.replaceChild(mutants[i].window.document.documentElement, page.window.document.documentElement);
-
             fs.writeFileSync(path.join(generatedPagesDirectory, fileName), mutants[i].serialize());
             totalMutants++;
         }
