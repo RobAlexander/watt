@@ -134,7 +134,7 @@ def print_stats(report_object):
             for tester, failure in page['failures'].items():
                 if tester not in testers.keys():
                     testers[tester] = {"live": 0, "mutation_score": nan}
-                if failure is 0 and report_object[page['parent']]['failures'] is 0:
+                if failure is 0 and report_object[page['parent']]['failures'][tester] is 0:
                     testers[tester]['live'] += 1
     for tester in testers.keys():
         testers[tester]['mutation_score'] = testers[tester]['live'] / float(mutants)
