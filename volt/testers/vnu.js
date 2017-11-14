@@ -12,7 +12,7 @@ child_process.exec(`java -jar ${vnu} --format json --exit-zero-always ${process.
         process.exit(1);
     }
     var output = JSON.parse(stderr);
-    var data = {"violations": []};
+    var data = {"violations": [], "passes": [], "incomplete": [], "inapplicable": []};
     output['messages'].forEach(function(element) {
         if (element['type'] == "error") {
             data['violations'].push({

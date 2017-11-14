@@ -117,7 +117,8 @@ def build_report(output):
         pages_output[page_name] = {
             "failures": failures,
             "mutations": page_data.applied_mutations(),
-            "parent": page_data.original_name() if page_data.original_name() != page_name else None
+            "parent": page_data.original_name() if page_data.original_name() != page_name else None,
+            "valid": page_data.evaluations()['vnu'].failure() == 0 if 'vnu' in page_data.evaluations().keys() else None
         }
     if output is not None:
         with open(output, 'w') as f:
