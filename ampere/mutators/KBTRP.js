@@ -23,7 +23,10 @@ KBTRP.prototype.mutateElement = function(element) {
     var label = new JSDOM("<!DOCTYPE html>").window.document.createElement("label");
     label.appendChild(new JSDOM("<!DOCTYPE html>").window.document.createTextNode("Field"));
     label.appendChild(field);
-    element.appendChild(label);
+    var div = new JSDOM("<!DOCTYPE html>").window.document.createElement("div");
+    div.setAttribute("role", "complementary");
+    div.appendChild(label);
+    element.appendChild(div);
     return element;
 }
 

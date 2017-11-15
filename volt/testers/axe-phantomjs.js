@@ -3,7 +3,7 @@
 // Code reused from https://github.com/dequelabs/axe-core/blob/develop/doc/examples/phantomjs/axe-phantom.js
 
 /*global window, phantom */
-var PATH_TO_AXE = '../node_modules/axe-core/axe.min.js';
+const PATH_TO_AXE = '../node_modules/axe-core/axe.min.js';
 
 var args = require('system').args;
 var fs = require('fs');
@@ -29,8 +29,18 @@ page.open(args[1], function (status) {
 	});
 	page.switchToMainFrame();
 	page.evaluateAsync(function () {
+		const AXE_OPTIONS = {
+			"rules": {
+				"heading-order": {"enabled": true},
+				"href-no-hash": {"enabled": true},
+				"label-title-only": {"enabled": true},
+				"region": {"enabled": true},
+				"skip-link": {"enabled": true}
+			}
+		};
+
 		/*global axe */
-		axe.run(function (err, results) {
+		axe.run(document, AXE_OPTIONS, function (err, results) {
 			if (err)  {
 				throw err;
 			}
