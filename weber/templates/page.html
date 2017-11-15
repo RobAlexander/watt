@@ -42,7 +42,7 @@
         </thead>
         <tbody>
             {% for tester, result in page['failures'].items() %}
-                <tr data-success="{{ (page['parent'] == none and result == 0) or (page['parent'] != none and result != 0) }}">
+                <tr data-success="{{ (page['parent'] == none and result == 0 and tester != 'vnu') or (page['parent'] != none and result != 0 and tester != 'vnu') or (tester == 'vnu' and result == 0) }}">
                     <td><a href="{{ url_for('job_page_tester', job=job['number'], page=page_name, tester=tester) }}">{{ tester }}</a></td>
                     <td>{{ result }}</td>
                 </tr>
