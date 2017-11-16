@@ -1,4 +1,4 @@
-<table class="table">
+<table class="table" id="pages">
     <thead>
         <tr>
             <th>Page</th>
@@ -9,7 +9,7 @@
     </thead>
     <tbody>
         {% for page, data in summary.items() %}
-            <tr>
+            <tr class="page-result">
                 <td id="{{ page }}"><a href="{{ url_for('job_page_info', job=job['number'], page=page) }}">{{ page }}</a></td>
                 <td>
                     <ul>
@@ -20,7 +20,7 @@
                 </td>
                 <td><a href="#{{ data['parent'] }}">{{ data['parent'] }}</a></td>
                 <td>
-                    <table class="success-results">
+                    <table class="success-results extra-results">
                         <tbody>
                             {% for tester, result in data['failures'].items() %}
                                 <tr data-success="{{ (((data['parent'] == none and result == 0) or (data['parent'] != none and result != 0)) and tester != 'vnu') or (tester == 'vnu' and result == 0) }}">

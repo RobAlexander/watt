@@ -1,4 +1,21 @@
 {% extends 'layout.html' %}
+{% block head %}
+    <script type="application/javascript">
+        $(document).ready(function() {
+            var table = $("#page-tester-res").DataTable({
+                "paging": false,
+                "info": false,
+                "dom": '<"toolbar form-check">ftrip',
+                "fnInitComplete": function() {
+                    $("#page-tester-res_wrapper .toolbar").html('<label class="form-check-label"><input class="form-check-input failures" type="checkbox" />Show Failures only</label>');
+                    $("#page-tester-res_wrapper .toolbar input").change(function() {
+                        table.draw();
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %}
 {% block body %}
     <h1>Job {{ job['number'] }} - {{ tester_name }}</h1>
     <div class="form-group row">
@@ -14,7 +31,7 @@
         </div>
     </div>
     <h2>Page Results</h2>
-    <table class="table success-results">
+    <table class="table success-results" id="page-tester-res">
         <thead>
             <tr>
                 <th>Page</th>

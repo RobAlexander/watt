@@ -9,6 +9,22 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
         <!--END Bootstrap-->
+        <!--START Datatables-->
+        <link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
+        <script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+        <script src="//cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+        <script type="application/javascript">
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex, original) {
+                    if ($("#" + settings.nTableWrapper.id + " .toolbar .failures").prop("checked")) {
+                        return $(settings.nTable).dataTable().api().row(dataIndex).nodes().to$().attr("data-success") == "False";
+                    } else {
+                        return true;
+                    }
+                }
+            );
+        </script>
+        <!--END Datatables-->
         <!--START Custom style-->
         <style type="text/css">
             table.success-results tr[data-success="True"] {
@@ -18,6 +34,11 @@
             table.success-results tr[data-success="False"] {
                 background-color: #f8d7da
             }
+
+            .dataTables_wrapper .toolbar {
+            float: left;
+            margin-bottom: 0px;
+        }
         </style>
         <!--END Custom style-->
         <title>{% if title is defined %}{{ title }} - {% endif %}WATT</title>

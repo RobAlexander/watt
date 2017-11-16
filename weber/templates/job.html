@@ -11,6 +11,32 @@
     </style>
     {% if job['status'] == "BUILDING" %}
         <meta http-equiv="refresh" content="5">
+    {% elif job['status'] == "SUCCESS" %}
+        <script type="application/javascript">
+            $(document).ready(function() {
+                $("#pages tr.page-result").each(function() {
+                    var success = true;
+                    $(this).find(".extra-results tr").each(function() {
+                        if($(this).attr("data-success") == "False") {
+                            success = false;
+                        }
+                    });
+                    $(this).attr("data-success", success ? "True" : "False");
+                });
+
+                var table = $("#pages").DataTable({
+                    "paging": false,
+                    "info": false,
+                    "dom": '<"toolbar form-check">ftrip',
+                    "fnInitComplete": function() {
+                        $("#pages_wrapper .toolbar").html('<label class="form-check-label"><input class="form-check-input failures" type="checkbox" />Show Failures only</label>');
+                        $("#pages_wrapper .toolbar input").change(function() {
+                            table.draw();
+                        });
+                    }
+                });
+            });
+        </script>
     {% endif %}
 {% endblock %}
 {% block body %}
