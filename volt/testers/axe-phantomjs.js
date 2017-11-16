@@ -10,7 +10,7 @@ var fs = require('fs');
 var page = require('webpage').create();
 
 if (args.length < 2) {
-	console.log('axe-phantomjs.js accepts 1 argument, the URL to test');
+	console.log('axe-phantomjs.js accepts 2 arguments, the URL to test and output file');
 	phantom.exit(1);
 }
 
