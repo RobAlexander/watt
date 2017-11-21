@@ -1,6 +1,6 @@
 #!/bin/phantomjs
 
-// Code reused from https://github.com/dequelabs/axe-core/blob/develop/doc/examples/phantomjs/axe-phantom.js
+// Code modified from https://github.com/dequelabs/axe-core/blob/develop/doc/examples/phantomjs/axe-phantom.js
 
 /*global window, phantom */
 const PATH_TO_AXE = '../node_modules/axe-core/axe.min.js';
@@ -10,8 +10,12 @@ var fs = require('fs');
 var page = require('webpage').create();
 
 if (args.length < 2) {
-	console.log('axe-phantomjs.js accepts 2 arguments, the URL to test and output file');
+	console.log('axe-phantomjs.js <url> <output> [-s]');
 	phantom.exit(1);
+}
+var speech = false;
+if (args.length >= 4 && args[3] == "-s") {
+	speech = true;
 }
 
 page.open(args[1], function (status) {
@@ -23,12 +27,19 @@ page.open(args[1], function (status) {
 	}
 
 	page.injectJs(PATH_TO_AXE);
-	page.framesName.forEach(function (name) {
+	if (speech) {
+		speechToScreen(page);
+	}
+	page.framesName.forEach(function(name) {
 		page.switchToFrame(name);
 		page.injectJs(PATH_TO_AXE);
+		if (speech) {
+			speechToScreen(page);			
+		}
 	});
+	console.log("main");
 	page.switchToMainFrame();
-	page.evaluateAsync(function () {
+	page.evaluateAsync(function() {
 		const AXE_OPTIONS = {
 			"rules": {
 				"heading-order": {"enabled": true},
@@ -48,7 +59,7 @@ page.open(args[1], function (status) {
 		});
 	});
 
-	page.onCallback = function (msg) {
+	page.onCallback = function(msg) {
 		if (args[2]) {
 			fs.write(args[2], JSON.stringify(msg, null, '  '), 'w');
 		} else {
@@ -58,3 +69,22 @@ page.open(args[1], function (status) {
 		phantom.exit();
 	};
 });
+
+function speechToScreen(pageObj) {
+	pageObj.evaluate(function() {
+		for (var i  = 0; i < document.styleSheets.length; i++) {
+			for (var j = 0; j < document.styleSheets[i].rules.length; j++) {
+				if ("media" in document.styleSheets[i].rules[j]) {
+					switch (document.styleSheets[i].rules[j].media.mediaText) {
+						case "screen":
+							document.styleSheets[i].rules[j].media.mediaText = "speech";
+							break;
+						case "speech":
+							document.styleSheets[i].rules[j].media.mediaText = "screen";
+							break;
+					}
+				}
+			}
+		}
+	});
+}

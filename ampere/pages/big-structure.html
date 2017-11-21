@@ -15,6 +15,24 @@
                 display: block;
             }
         }
+
+        @media screen {
+            :root .skiplink {
+                display: block
+            }
+
+            .skiplink a {
+                position: absolute;
+                left: -1000em;
+            }
+        }
+
+        #content {
+            float: right;
+            height: 1px;
+            width: 1px;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -22,7 +40,7 @@
         <h1 role="heading">Big Page</h1>
     </div>
     <nav role="navigation">
-        <p class="sr"><a href="#content">Skip to Content</a></p>
+        <p class="sr skiplink"><a href="#content">Skip to Content</a></p>
         <ul>
             <li>
                 <a href="#sec1">Section 1</a>
@@ -50,7 +68,8 @@
             </li>
         </ul>
     </nav>
-    <div id="content" role="main">
+    <div role="main">
+        <a id="content">-</a>
         <p>Some Introductory content</p>
         <h2 id="sec1" role="heading">Section 1</h2>
         <p>Page content</p>
