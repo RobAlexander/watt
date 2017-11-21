@@ -9,6 +9,7 @@ import json
 
 from page import Page, Evaluation
 from common import nan
+from htmldiff import HTMLDiff
 
 pages = {}
 
@@ -75,6 +76,43 @@ def build_stats(report_object, output):
             json.dump(stats, f)
     return stats
 
+def check_equivalence(pages, report_object, output):
+    equivalences = {}
+    for page_name, page_data in report_object.items():
+        equivalence = None
+        if page_data['parent'] is not None:
+            live = False
+            for _, failures in page_data['failures'].items():
+                if failures is not 0:
+                    live = True
+            if live:
+                with open(path.join(pages, page_name)) as f:
+                    mutant = f.readlines()
+                with open(path.join(pages, page_data['parent'])) as f:
+                    original = f.readlines()
+                differ = HTMLDiff(original, mutant) 
+                if differ.quick_ratio() < 1.0 or differ.ratio() < 1.0:
+                    # Non-equivalent page
+                    if not path.exists(path.join(output, "results")):
+                        os.mkdir(path.join(output, "results"))
+                    with open(path.join(output, "results", page_name + ".diff"), 'w') as f:
+                        f.write(differ.diff_table())
+                    equivalence = False
+                else:
+                    # Equivalent
+                    equivalence = True
+            else:
+                # Not live
+                pass
+        else:
+            # Not an mutant
+            pass
+        equivalences[page_name] = equivalence
+    if output is not None:
+        with open(path.join(output, "equivalence.json"), 'w') as f:
+            json.dump(equivalences, f)
+    return equivalences
+            
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description="Analyses results of mutation tests")
@@ -87,3 +125,4 @@ if __name__ == '__main__':
     load_reports(argv.reports)
     report = build_report(path.join(argv.output, "summary.json"))
     stats = build_stats(report, path.join(argv.output, "stats.json"))
+    equivalence = check_equivalence(argv.pages, report, argv.output)
