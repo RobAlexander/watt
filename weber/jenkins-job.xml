@@ -43,7 +43,7 @@
       <command>node /vagrant/volt/volt.js run/pages run/results -t ${Testers}</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-      <command>python3 /vagrant/tesla/tesla.py run/results run/summary.json &gt; run/stats.json</command>
+      <command>python3 /vagrant/tesla/tesla.py run/pages run/results run</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

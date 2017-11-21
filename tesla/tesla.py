@@ -7,80 +7,8 @@ import os
 import stat
 import json
 
-
-nan = float('nan')
-
-class Page:
-    def __init__(self, page_name):
-        self._page_name = page_name
-        self._evaluations = {}
-
-    def __repr__(self):
-        return self.page_name() + " with evaluations " + \
-            ", ".join(str(evaluation) for _, evaluation in self.evaluations().items())
-
-    def page_name(self):
-        return self._page_name
-
-    def original_name(self):
-        return self._page_name.split(".")[0] + "." + self._page_name.split(".")[-1]
-
-    def applied_mutations(self):
-        parts = self._page_name.split(".")
-        mutations = []
-        for i in range(1, len(parts) - 1, 2):
-            mutations.append(parts[i])
-        return mutations
-
-    def mutant_order(self):
-        return len(self.applied_mutations())
-
-    def evaluations(self):
-        return self._evaluations
-
-    def add_evaluation(self, evaluation):
-        self._evaluations[evaluation.tool()] = evaluation
-
-class Evaluation:
-    def __init__(self, tool, failure=nan, inconclusive=nan, success=nan, skipped=nan, ran=nan):
-        self._tool = tool
-        self._failure = failure
-        self._inconclusive = inconclusive
-        self._success = success
-        self._skipped = skipped
-        self._ran = ran
-
-    def __repr__(self):
-        return self.tool() + " with pass rate of " + str(self.success()/self.ran())
-
-    def tool(self):
-        return self._tool
-
-    def failure(self):
-        if self._failure is nan:
-            return self.ran() - self.skipped() - self.success() - self.inconclusive()
-        return self._failure
-
-    def inconclusive(self):
-        if self._inconclusive is nan:
-            return self.ran() - self.skipped() - self.success() - self.failure()
-        return self._inconclusive
-
-    def success(self):
-        if self._success is nan:
-            return self.ran() - self.skipped() - self.failure() - self.inconclusive()
-        return self._success
-
-    def skipped(self):
-        if self._skipped is nan:
-            return self.ran() - self.failure() - self.success() - self.inconclusive()
-        return self._skipped
-
-    def ran(self):
-        if self._ran is nan:
-            return self.skipped() + self.success() + self.inconclusive() + self.failure()
-        return self._ran
-
+from page import Page, Evaluation
+from common import nan
 
 pages = {}
 
@@ -125,7 +53,7 @@ def build_report(output):
             json.dump(pages_output, f)
     return pages_output
 
-def print_stats(report_object):
+def build_stats(report_object, output):
     testers = {}
     mutants = 0
 
@@ -142,16 +70,20 @@ def print_stats(report_object):
 
 
     stats = {"testers": testers, "mutant_pages": mutants}
-    print(json.dumps(stats))
+    if output is not None:
+        with open(output, 'w') as f:
+            json.dump(stats, f)
+    return stats
 
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description="Analyses results of mutation tests")
+    argparser.add_argument('pages', help="Path to directory containing all pages")
     argparser.add_argument('reports', help="Path to directory containing all reports")
-    argparser.add_argument('output', help="Path to location to save summary report", default=None)
+    argparser.add_argument('output', help="Path to directory to save output", default=None)
     argv = argparser.parse_args(sys.argv[1:] if ".py" in sys.argv[0] else sys.argv)
 
     build_pages_list(argv.reports)
     load_reports(argv.reports)
-    report = build_report(argv.output)
-    print_stats(report)
+    report = build_report(path.join(argv.output, "summary.json"))
+    stats = build_stats(report, path.join(argv.output, "stats.json"))

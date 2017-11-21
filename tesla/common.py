@@ -1,0 +1,1 @@
+nan = float('nan')

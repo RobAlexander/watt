@@ -1,6 +1,7 @@
 .vagrant/
 .vscode/
 node_modules/
+__pycache__/
 
 run/
 out/
