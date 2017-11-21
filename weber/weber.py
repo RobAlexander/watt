@@ -74,6 +74,9 @@ def get_jobs_list(job_name):
     return [get_job_data(job_name, job['number']) \
         for job in jenkins.get_job_info(job_name)['builds']]
 
+def get_equivalence(job, number):
+    return get_jenkins_artifact(job, number, "equivalence.json").json()
+
 @app.route('/')
 def main():
     jobs = get_jobs_list(JENKINS_JOB_NAME)
@@ -173,8 +176,9 @@ def job_page_info(job, page):
     joule_command.append(JENKINS_USERNAME)
     joule_command.append(JENKINS_PASSWORD)
     page_image = subprocess.check_output(joule_command).decode('utf-8')
-    return render_template("page.html",
-                           job=job_data, page_name=page, page=job_data_summary[page], page_image=page_image,
+    equivalence = get_equivalence(JENKINS_JOB_NAME, job)[page]
+    return render_template("page.html", job=job_data, page_name=page,
+                           page=job_data_summary[page], page_image=page_image, equivalence=equivalence,
                            breadcrumb=[
                                {"name": "Job", "url": url_for("job_menu")},
                                {"name": "Job %d" % job, "url": url_for("job_info", job=job)},
@@ -186,6 +190,20 @@ def job_page_info(job, page):
 @app.route('/job/<int:job>/page/<page>/raw')
 def job_page_raw(job, page):
     return get_jenkins_artifact(JENKINS_JOB_NAME, job, "pages/" + page).text
+
+@app.route('/job/<int:job>/page/<page>/diff')
+def job_page_diff(job, page):
+    job_data = get_job_data(JENKINS_JOB_NAME, job)
+    diff = get_jenkins_artifact(JENKINS_JOB_NAME, job, "results/" + page + ".diff").text
+    return render_template("diff.html", job=job_data, page_name=page, diff=diff,
+                           breadcrumb=[
+                               {"name": "Job", "url": url_for("job_menu")},
+                               {"name": "Job %d" % job, "url": url_for("job_info", job=job)},
+                               {"name": "Pages", "url": url_for("job_page", job=job)},
+                               {"name": page, "url": url_for("job_page_info", job=job, page=page)},
+                               {"name": "Diff vs Parent", "url": url_for("job_page_diff", job=job, page=page)}
+                           ]
+                          )
 
 @app.route('/job/<int:job>/page/<page>/<tester>')
 def job_page_tester(job, page, tester):

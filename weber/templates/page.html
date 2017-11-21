@@ -49,4 +49,11 @@
             {% endfor %}
         </tbody>
     </table>
+    <p>
+        {% if equivalence == False %}
+            <a class="btn btn-secondary" role="button" href="{{ url_for('job_page_diff', job=job['number'], page=page_name) }}">
+                View Diff
+            </a>
+        {% endif %}
+    </p>
 {% endblock %}

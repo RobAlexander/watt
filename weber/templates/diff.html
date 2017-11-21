@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+{% block head %}
+    <style type="text/css">
+        #diff-main table tr {
+            border-bottom: 1px solid #000000;
+        }
+
+        #diff-main table tr:last-of-type {
+            border-bottom: 0px;
+        }
+
+        #diff-main table tr td code {
+            display: block;
+        }
+
+        #diff-main table tr[data-action="equal"] td code {
+            color: #777777;
+        }
+
+        #diff-main table tr[data-action="replace"] td code {
+            color: #bbbb00;
+        }
+
+        #diff-main table tr[data-action="delete"] td code {
+            color: #ff0000;
+        }
+
+        #diff-main table tr[data-action="insert"] td code {
+            color: #00ff00;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <h1>Job {{ job['number'] }} - {{ page_name }}</h1>
+    <div id="diff-main">
+        {% autoescape false %}
+            {{ diff }}
+        {% endautoescape %}
+    </div>
+{% endblock %}
