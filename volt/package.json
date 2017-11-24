@@ -8,6 +8,7 @@
         "axe-core": "2.4.2",
         "yargs": "10.0.3",
         "vnu-jar": "17.11.1",
-        "pa11y": "4.13.1"
+        "pa11y": "4.13.1",
+        "accessibility-developer-tools": "2.12.0"
     }
 }
