@@ -1,0 +1,7 @@
+\begin{tabular}{ c|c|c }
+    Mutation Operator & Description & Guideline \\
+    [% for (mutator in mutatorSet.mutators) { %]
+        \hline
+        [%= mutator.name %] & [%= mutator.shortDesc %] & [% if (mutator.guideline.size() > 0) { %][%= mutator.guideline[0].guidelineName %][% } %] \\
+    [% } %]
+\end{tabular}
