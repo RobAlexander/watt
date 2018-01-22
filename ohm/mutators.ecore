@@ -4,16 +4,32 @@
   <eClassifiers xsi:type="ecore:EClass" name="MutatorSet">
     <eStructuralFeatures xsi:type="ecore:EReference" name="mutators" upperBound="-1"
         eType="#//Mutator" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="guidelines" upperBound="-1"
+        eType="#//Guideline" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Mutator" abstract="true">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="shortDesc" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="longDesc" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="guideline" upperBound="-1"
+        eType="#//Guideline"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="examples" upperBound="-1"
+        eType="#//Example" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="HTMLMutator" eSuperTypes="#//Mutator">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="elementSelector" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="mutation" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Guideline">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="guidelineName" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="guidelineLink" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Example">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="before" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="after" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
 </ecore:EPackage>
