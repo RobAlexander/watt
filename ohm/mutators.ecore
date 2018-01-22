@@ -23,9 +23,9 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="mutation" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Guideline">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="guidelineName" lowerBound="1"
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="guidelineLink" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="link" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Example">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="before" lowerBound="1"

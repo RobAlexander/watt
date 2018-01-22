@@ -20,8 +20,8 @@ class HTMLMutator extends Mutator {
 }
 
 class Guideline {
-    attr String[1] guidelineName;
-    attr String guidelineLink;
+    attr String[1] name;
+    attr String link;
 }
 
 class Example {
