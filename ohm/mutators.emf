@@ -3,15 +3,28 @@ package mutators;
 
 class MutatorSet {
     val Mutator[*] mutators;
+    val Guideline[*] guidelines;
 }
 
 abstract class Mutator {
     attr String[1] name;
     attr String[1] shortDesc;
     attr String longDesc;
+    ref Guideline[*] guideline;
+    val Example[*] examples;
 }
 
 class HTMLMutator extends Mutator {
     attr String[1] elementSelector;
     attr String mutation;
+}
+
+class Guideline {
+    attr String[1] guidelineName;
+    attr String guidelineLink;
+}
+
+class Example {
+    attr String[1] before;
+    attr String[1] after;
 }
