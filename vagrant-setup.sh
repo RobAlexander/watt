@@ -69,3 +69,16 @@ ln -sf /vagrant/weber/env.sh /etc/profile.d/weber.sh
 
 echo "===Weber Package==="
 pip3 install -r requirements.txt
+
+# Ohm (Modelling)
+echo "==Ohm=="
+cd /vagrant/ohm
+echo "===Epsilon==="
+wget http://mirrors.nic.cz/eclipse/epsilon/jars/epsilon-1.4-kitchensink.jar
+
+echo "===Ant==="
+apt-get install -y ant
+
+echo "===Jenkins==="
+mkdir -p /var/jenkins/jobs/mutators
+ln -sf /vagrant/ohm/jenkins-job.xml /var/jenkins/jobs/mutators/config.xml

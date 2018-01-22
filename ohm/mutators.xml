@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project default="generate">
+
+    <taskdef resource="org/eclipse/epsilon/workflow/tasks/tasks.xml"/>
+    <taskdef resource="org/eclipse/epsilon/workflow/tasks/emf/tasks.xml"/>
+    <!--<taskdef resource="org/eclipse/epsilon/workflow/tasks/eugenia/tasks.xml"/>-->
+
+    <target name="emfgen">
+        <epsilon.eugenia src="mutators.emf" lastStep="ecore" />
+    </target>
+
+    <target name="loadmodel">
+        <epsilon.emf.register file="mutators.ecore" />
+        <epsilon.emf.loadModel name="MutationOperators" modelFile="${mutatorFile}" metamodelUri="mutators" read="true" store="false" />
+    </target>
+
+    <target name="generate" depends="loadmodel">
+        <epsilon.evl src="mutators.evl" failOnErrors="true">
+            <model ref="MutationOperators" />
+        </epsilon.evl>
+
+        <epsilon.egl src="mutators.egx">
+            <model ref="MutationOperators" />
+        </epsilon.egl>
+    </target>
+    
+</project>

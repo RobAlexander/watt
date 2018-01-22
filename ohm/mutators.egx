@@ -1,0 +1,4 @@
+rule Mutator2JS transform mutator: HTMLMutator {
+    template: "JS-HTMLMutator.egl"
+    target: "mutators/" + mutator.name + ".js"
+}

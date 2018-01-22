@@ -1,0 +1,7 @@
+context Mutator {
+    constraint MutationOperatorNameUnique {
+        guard: self.name.isDefined()
+        check: Mutator.all().select(m|m.name == self.name).size() == 1
+        message: self.name + "is not a unique mutator name"
+    }
+}

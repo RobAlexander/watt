@@ -1,0 +1,23 @@
+[% var name = mutator.name.toUpperCase(); %]
+
+"use strict";
+
+var Mutator = require('../mutator');
+
+function [%= name %]() {
+    Mutator.call(this, "[%= name %]", "[%= mutator.shortDesc %]");
+}
+
+[%= name %].prototype = Object.create(Mutator.prototype);
+[%= name %].prototype.constructor = [%= name %];
+
+[%= name %].prototype.findEligibleElementsInDocument = function(document) {
+    return document.querySelectorAll("[%= mutator.elementSelector %]");
+}
+
+[%= name %].prototype.mutateElement = function(element) {
+    [%= mutator.mutation %]
+    return element;
+}
+
+module.exports = new [%= name %]();
