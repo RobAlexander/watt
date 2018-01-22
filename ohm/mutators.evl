@@ -2,6 +2,20 @@ context Mutator {
     constraint MutationOperatorNameUnique {
         guard: self.name.isDefined()
         check: Mutator.all().select(m|m.name == self.name).size() == 1
-        message: self.name + "is not a unique mutator name"
+        message: self.name + " is not a unique mutator name"
+    }
+}
+
+context Guideline {
+    critique GuidelineLinkURL {
+        guard: self.guidelineLink.isDefined()
+        check: self.guidelineLink.startsWith("http://") or self.guidelineLink.startsWith("https://")
+        message: self.guideline + " is not a valid link"
+        fix {
+            title: "Remove link"
+            do {
+                self.guidelineLink = "";
+            }
+        }
     }
 }
