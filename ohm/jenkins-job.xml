@@ -7,8 +7,18 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>Mutator File</name>
+          <name>Model</name>
           <description>Path to the file containing the mutator definitions</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>CodeDestination</name>
+          <description>Path to the deployment directory for mutators</description>
+          <defaultValue>/vagrant/ampere/mutators</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DataDestination</name>
+          <description>Path to the deployment directory for mutator data (such as TeX files)</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
@@ -24,9 +34,21 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>ant -buildfile /vagrant/ohm/mutators.xml generate -lib &quot;/vagrant/ohm/epsilon-1.4-kitchensink.jar&quot; -DmutatorFile=${MutatorFile}</command>
+      <command>ant -buildfile /vagrant/ohm/mutators.xml generate -lib &quot;/vagrant/ohm/epsilon-1.4-kitchensink.jar&quot; -DmutatorFile=${Model} -DworkingDirectory=${workspace}</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>rm -rf ${CodeDestination}</command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>mutators/</artifacts>
+      <allowEmptyArchive>true</allowEmptyArchive>
+      <onlyIfSuccessful>true</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
   <buildWrappers/>
 </project>

@@ -1,9 +1,11 @@
+import "config.eol";
+
 rule Mutator2JS transform mutator: HTMLMutator {
     template: "JS-HTMLMutator.egl"
-    target: "mutators/" + mutator.name + ".js"
+    target: getWorkingDirectory() + "/mutators/" + mutator.name + ".js"
 }
 
 rule Mutators2Tex transform mutatorSet: MutatorSet {
     template: "Tex-Mutations.egl"
-    target: "mutators.tex"
+    target: getWorkingDirectory() + "/data/mutators.tex"
 }

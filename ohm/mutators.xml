@@ -14,7 +14,15 @@
         <epsilon.emf.loadModel name="MutationOperators" modelFile="${mutatorFile}" metamodelUri="mutators" read="true" store="false" />
     </target>
 
-    <target name="generate" depends="loadmodel">
+    <target name="opsetup">
+        <echo file="config.eol">
+            function getWorkingDirectory(): String {
+                return "${workingDirectory}";
+            }
+        </echo>
+    </target>
+
+    <target name="generate" depends="loadmodel,opsetup">
         <epsilon.evl src="mutators.evl" failOnErrors="true">
             <model ref="MutationOperators" />
         </epsilon.evl>
