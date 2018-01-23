@@ -4,6 +4,7 @@ import json
 import base64
 import os
 import subprocess
+from pathlib import Path
 
 from flask import Flask, render_template, url_for, request, redirect
 import jenkins as jenkins_lib
@@ -17,10 +18,7 @@ JENKINS_USERNAME = "admin"
 JENKINS_PASSWORD = JENKINS_USERNAME
 JENKINS_REQUESTS_AUTH = HTTPBasicAuth('admin', 'admin')
 
-MUTATIONS_DIRECTORY = "/vagrant/ampere/mutators"
-TESTERS_DIRECTORY = "/vagrant/volt/testers"
-
-JOULE_COMMAND = "phantomjs /vagrant/joule/joule.js"
+CONFIG_REQUIRED_KEYS = ["mutatorSource", "root", "dataRoot"]
 
 app = Flask(__name__)
 jenkins = jenkins_lib.Jenkins(
@@ -28,6 +26,8 @@ jenkins = jenkins_lib.Jenkins(
     username=JENKINS_USERNAME,
     password=JENKINS_PASSWORD
 )
+
+# Template methods
 
 @app.template_filter('b64encode')
 def b64encode(value):
@@ -40,6 +40,8 @@ def len_filter(value):
 @app.before_request
 def before_request():
     app.jinja_env.cache = {}
+
+# Helper methods
 
 def get_job_data(job, number):
     jenkins_data = jenkins.get_build_info(job, number)
@@ -77,6 +79,33 @@ def get_jobs_list(job_name):
 def get_equivalence(job, number):
     return get_jenkins_artifact(job, number, "equivalence.json").json()
 
+def load_config():
+    config = {}
+    if "CONFIG_PATH" in app.config.keys():
+        with open(app.config["CONFIG_PATH"]) as f:
+            config = json.load(f)
+    
+    for key in CONFIG_REQUIRED_KEYS:
+        if key not in config.keys():
+            config[key] = None
+    app.config["WEBER_CONFIG"] = config
+
+def save_config():
+    if "CONFIG_PATH" in app.config.keys():
+        with open(app.config["CONFIG_PATH"], 'w') as f:
+            json.dump(app.config["WEBER_CONFIG"], f)
+
+def get_mutators_directory():
+    return app.config["WEBER_CONFIG"]["root"] + "/ampere/mutators"
+
+def get_testers_directory():
+    return app.config["WEBER_CONFIG"]["root"] + "/volt/testers"
+
+def make_joule_command():
+    return "phantomjs " + app.config["WEBER_CONFIG"]["root"] + "/joule/joule.js"
+
+# Job routes
+
 @app.route('/')
 def main():
     jobs = get_jobs_list(JENKINS_JOB_NAME)
@@ -107,8 +136,8 @@ def new():
             params[param['name']] = param['defaultParameterValue']['value']
             if params[param['name']] == "":
                 params[param['name']] = None
-        all_mutations = [f.split(".")[0] for f in os.listdir(MUTATIONS_DIRECTORY) if os.path.isfile(os.path.join(MUTATIONS_DIRECTORY, f))]
-        all_testers = [f.split(".")[0] for f in os.listdir(TESTERS_DIRECTORY) if os.path.isfile(os.path.join(TESTERS_DIRECTORY, f)) and f.split(".")[-1] == "sh"]
+        all_mutations = [f.split(".")[0] for f in os.listdir(get_mutators_directory()) if os.path.isfile(os.path.join(get_mutators_directory(), f))]
+        all_testers = [f.split(".")[0] for f in os.listdir(get_testers_directory()) if os.path.isfile(os.path.join(get_testers_directory(), f)) and f.split(".")[-1] == "sh"]
         return render_template("new.html",
                                pages=params['Pages'], mutations=params['Mutations'], testers=params['Testers'],
                                all_mutations=all_mutations, all_testers=all_testers,
@@ -171,7 +200,7 @@ def job_page(job):
 def job_page_info(job, page):
     job_data = get_job_data(JENKINS_JOB_NAME, job)
     job_data_summary = get_job_summary(JENKINS_JOB_NAME, job)
-    joule_command = JOULE_COMMAND.split(" ")
+    joule_command = make_joule_command().split(" ")
     joule_command.append(get_jenkins_artifact_url(JENKINS_JOB_NAME, job, "pages/" + page))
     joule_command.append(JENKINS_USERNAME)
     joule_command.append(JENKINS_PASSWORD)
@@ -252,7 +281,29 @@ def job_tester_info(job, tester):
                            ]
                           )
 
+@app.route('/config', methods=["POST", "GET"])
+def config():
+    config = app.config["WEBER_CONFIG"]
+    if request.method == "POST":
+        changed = []
+        for key in request.form.keys():
+            if key in config.keys() and config[key] != request.form[key]:
+                changed.append(key)
+            config[key] = request.form[key]
+        app.config["WEBER_CONFIG"] = config
+        save_config()
+        return redirect(url_for("main"))
+    else:
+        return render_template("config.html",
+                               mutator_source=config["mutatorSource"], root=config["root"], data_root=config["dataRoot"],
+                               breadcrumb=[
+                                   {"name": "Config", "url": url_for("config")}
+                               ]
+                              )
+
 if __name__ == '__main__':
     app.jinja_env.auto_reload = True
     app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.config['CONFIG_PATH'] = "/vagrant/config.json"
+    load_config()
     app.run(host="0.0.0.0", port=8080, debug=True)

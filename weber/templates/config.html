@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+{% block head %}
+    <script type="application/javascript">
+        $(document).ready(function() {
+            $('.selectall').click(function() {
+                var selectId = $(this).prop('id').split('-')[0];
+                $('#' + selectId + ' option').prop('selected', true);
+            });
+        });
+    </script>
+{% endblock %}
+{% block body %}
+    <h1>Configuration</h1>
+    <form name="config" method="POST">
+        <div class="form-group">
+            <label for="mutatorSource">Mutator Source File</label>
+            <input type="text" class="form-control" id="mutatorSource" name="mutatorSource" aria-describedby="sourceHelp" placeholder="Mutators file path" value="{{ mutator_source }}">
+            <small id="sourceHelp" class="form-text text-muted">Path on server file system to use.</small>
+        </div>
+        <div class="form-group">
+            <label for="root">WATT Root</label>
+            <input type="text" class="form-control" id="root" name="root" aria-describedby="rootHelp" placeholder="Root file path" readonly value="{{ root }}">
+            <small id="rootHelp" class="form-text text-muted">Path on server file system to use.</small>
+        </div>
+        <div class="form-group">
+            <label for="dataRoot">Data Root</label>
+            <input type="text" class="form-control" id="dataRoot" name="dataRoot" aria-describedby="dataHelp" placeholder="Data Root file path" readonly value="{{ data_root }}">
+            <small id="dataHelp" class="form-text text-muted">Path on server file system to use.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+{% endblock %}
