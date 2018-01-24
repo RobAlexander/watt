@@ -34,15 +34,24 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>ant -buildfile /vagrant/ohm/mutators.xml generate -lib &quot;/vagrant/ohm/epsilon-1.4-kitchensink.jar&quot; -DmutatorFile=${Model} -DworkingDirectory=${workspace}</command>
+      <command>ant -buildfile /vagrant/ohm/mutators.xml generate -lib &quot;/vagrant/ohm/epsilon-1.4-kitchensink.jar&quot; -DmutatorFile=${Model} -DworkingDirectory=${WORKSPACE}</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command>rm -rf ${CodeDestination}</command>
     </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>cp -r mutators/ ${CodeDestination}</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>rm -rf ${DataDestination}</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>cp -r data/ ${DataDestination}</command>
+    </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>mutators/</artifacts>
+      <artifacts>*</artifacts>
       <allowEmptyArchive>true</allowEmptyArchive>
       <onlyIfSuccessful>true</onlyIfSuccessful>
       <fingerprint>false</fingerprint>

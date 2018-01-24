@@ -17,6 +17,7 @@ JENKINS_JOB_BUILD_KEY = "qwertyuiop"
 JENKINS_USERNAME = "admin"
 JENKINS_PASSWORD = JENKINS_USERNAME
 JENKINS_REQUESTS_AUTH = HTTPBasicAuth('admin', 'admin')
+JENKINS_CONFIG_JOB_NAME="mutators"
 
 CONFIG_REQUIRED_KEYS = ["mutatorSource", "root", "dataRoot"]
 
@@ -81,13 +82,16 @@ def get_equivalence(job, number):
 
 def load_config():
     config = {}
-    if "CONFIG_PATH" in app.config.keys():
+    if "CONFIG_PATH" in app.config.keys() and Path(app.config["CONFIG_PATH"]).is_file():
         with open(app.config["CONFIG_PATH"]) as f:
             config = json.load(f)
     
     for key in CONFIG_REQUIRED_KEYS:
         if key not in config.keys():
             config[key] = None
+    if config["root"] is None:
+        config["root"] = "/".join(app.config["CONFIG_PATH"].split("/")[:-1])
+
     app.config["WEBER_CONFIG"] = config
 
 def save_config():
@@ -103,6 +107,12 @@ def get_testers_directory():
 
 def make_joule_command():
     return "phantomjs " + app.config["WEBER_CONFIG"]["root"] + "/joule/joule.js"
+
+def get_data_mutator_directory():
+    return app.config["WEBER_CONFIG"]["dataRoot"] + "/operators/gen"
+
+def get_weberload_file_path():
+    return app.config["WEBER_CONFIG"]["root"] + "/.weberload"
 
 # Job routes
 
@@ -250,7 +260,6 @@ def job_page_tester(job, page, tester):
                            ]
                           )
 
-
 @app.route('/job/<int:job>/page/<page>/<tester>/json')
 def job_page_tester_json(job, page, tester):
     return get_jenkins_artifact(JENKINS_JOB_NAME, job, "results/" + tester + "/" + page + ".json").text
@@ -281,6 +290,8 @@ def job_tester_info(job, tester):
                            ]
                           )
 
+# Config routes
+
 @app.route('/config', methods=["POST", "GET"])
 def config():
     config = app.config["WEBER_CONFIG"]
@@ -292,7 +303,10 @@ def config():
             config[key] = request.form[key]
         app.config["WEBER_CONFIG"] = config
         save_config()
-        return redirect(url_for("main"))
+        if len(changed) > 0:
+            return redirect(url_for("config_load"))
+        else:
+            return redirect(url_for("main"))
     else:
         return render_template("config.html",
                                mutator_source=config["mutatorSource"], root=config["root"], data_root=config["dataRoot"],
@@ -300,6 +314,42 @@ def config():
                                    {"name": "Config", "url": url_for("config")}
                                ]
                               )
+                    
+@app.route('/config/loading')
+def config_load():
+    config = app.config["WEBER_CONFIG"]
+    if not Path(get_weberload_file_path()).is_file():
+        jenkins_info = jenkins.get_job_info(JENKINS_CONFIG_JOB_NAME)
+        jenkins.build_job(
+            JENKINS_CONFIG_JOB_NAME,
+            {'Model':config['mutatorSource'], 'CodeDestination':get_mutators_directory(), 'DataDestination':get_data_mutator_directory()},
+            JENKINS_JOB_BUILD_KEY
+        )
+        with open(get_weberload_file_path(), 'w') as f:
+            f.write(str(jenkins_info['nextBuildNumber']))
+    
+    with open(get_weberload_file_path()) as f:
+        build_number = int(f.read())
+    try:
+        jenkins_data = jenkins.get_build_info(JENKINS_CONFIG_JOB_NAME, build_number)
+    except:
+        jenkins_data = {'building':True}
+    
+    status = "BUILDING" if jenkins_data['building'] else jenkins_data['result']
+    if status != "BUILDING":
+        os.remove(get_weberload_file_path())
+        if status != "SUCCESS":
+            return "ERROR!!!"
+        else:
+            return redirect(url_for("main"))
+    else:
+        return render_template("config_load.html",
+                               breadcrumb=[
+                                   {"name": "Config", "url": url_for("config")},
+                                   {"name": "Loading", "url": url_for("config_load")}
+                               ]
+                              )
+
 
 if __name__ == '__main__':
     app.jinja_env.auto_reload = True

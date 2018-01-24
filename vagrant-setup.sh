@@ -74,7 +74,12 @@ pip3 install -r requirements.txt
 echo "==Ohm=="
 cd /vagrant/ohm
 echo "===Epsilon==="
-wget http://mirrors.nic.cz/eclipse/epsilon/jars/epsilon-1.4-kitchensink.jar
+if [ -e epsilon-1.4-kitchensink.jar ]
+then
+    echo "Epsilon already installed"
+else
+    wget http://mirrors.nic.cz/eclipse/epsilon/jars/epsilon-1.4-kitchensink.jar
+fi
 
 echo "===Ant==="
 apt-get install -y ant

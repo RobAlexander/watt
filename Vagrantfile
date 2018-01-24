@@ -21,6 +21,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     branch.vm.network "forwarded_port", guest: 8081, host: 8081, host_ip: "127.0.0.1"
     branch.vm.synced_folder ".", "/vagrant"
 
+    if File.directory?("../priy-report") then
+      branch.vm.synced_folder "../priy-report", "/report"
+    end
+
   end
 
   config.vm.provider "virtualbox" do |v|
