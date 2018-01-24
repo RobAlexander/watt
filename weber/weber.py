@@ -38,10 +38,6 @@ def b64encode(value):
 def len_filter(value):
     return len(value)
 
-@app.before_request
-def before_request():
-    app.jinja_env.cache = {}
-
 # Helper methods
 
 def get_job_data(job, number):
@@ -88,8 +84,8 @@ def load_config():
     
     for key in CONFIG_REQUIRED_KEYS:
         if key not in config.keys():
-            config[key] = None
-    if config["root"] is None:
+            config[key] = ""
+    if config["root"] is "":
         config["root"] = "/".join(app.config["CONFIG_PATH"].split("/")[:-1])
 
     app.config["WEBER_CONFIG"] = config
@@ -98,6 +94,14 @@ def save_config():
     if "CONFIG_PATH" in app.config.keys():
         with open(app.config["CONFIG_PATH"], 'w') as f:
             json.dump(app.config["WEBER_CONFIG"], f)
+
+def config_valid():
+    config = app.config["WEBER_CONFIG"]
+
+    for key in CONFIG_REQUIRED_KEYS:
+        if key not in config.keys() or config[key] == "":
+            return False
+    return True
 
 def get_mutators_directory():
     return app.config["WEBER_CONFIG"]["root"] + "/ampere/mutators"
@@ -113,6 +117,19 @@ def get_data_mutator_directory():
 
 def get_weberload_file_path():
     return app.config["WEBER_CONFIG"]["root"] + "/.weberload"
+
+# General app management
+
+@app.before_request
+def before_request():
+    app.jinja_env.cache = {}
+    if request.endpoint != "config" and request.endpoint != "config_load":
+        if not config_valid():
+            return redirect(url_for("config"))
+        elif "WEBER_SETUP" not in app.config.keys() or app.config["WEBER_SETUP"] == False:
+            return redirect(url_for("config_load"))
+    elif request.endpoint != "config_load" and Path(get_weberload_file_path()).is_file():
+        return redirect(url_for("config_load"))
 
 # Job routes
 
@@ -310,6 +327,7 @@ def config():
     else:
         return render_template("config.html",
                                mutator_source=config["mutatorSource"], root=config["root"], data_root=config["dataRoot"],
+                               trap_nav=not config_valid(),
                                breadcrumb=[
                                    {"name": "Config", "url": url_for("config")}
                                ]
@@ -341,9 +359,10 @@ def config_load():
         if status != "SUCCESS":
             return "ERROR!!!"
         else:
+            app.config["WEBER_SETUP"] = True
             return redirect(url_for("main"))
     else:
-        return render_template("config_load.html",
+        return render_template("config_load.html", trap_nav=True,
                                breadcrumb=[
                                    {"name": "Config", "url": url_for("config")},
                                    {"name": "Loading", "url": url_for("config_load")}

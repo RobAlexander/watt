@@ -48,18 +48,22 @@
         <header>
             <span class="sr-only"><a href="#body">Skip to content</a></span>
             <nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-primary">
-                <a href="/" class="navbar-brand">WATT</a>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a href="/job" class="nav-link">Jobs</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/config" class="nav-link">Config</a>
-                    </li>
-                </ul>
-                <a class="btn btn-primary ml-md-auto" role="button" href="/job/new">New Job</a>
+                {% if trap_nav is not defined or trap_nav == False %}
+                    <a href="/" class="navbar-brand">WATT</a>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a href="/job" class="nav-link">Jobs</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/config" class="nav-link">Config</a>
+                        </li>
+                    </ul>
+                    <a class="btn btn-primary ml-md-auto" role="button" href="/job/new">New Job</a>
+                {% else %}
+                    <a href="#" class="navbar-brand">WATT setup</a>
+                {% endif %}
             </nav>
-            {% if breadcrumb is defined %}
+            {% if breadcrumb is defined and ((trap_nav is defined and trap_nav == False) or trap_nav is not defined) %}
                 <nav aria-label="breadcrumb" role="navigation">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/">WATT</a></li>
