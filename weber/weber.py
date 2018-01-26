@@ -5,6 +5,7 @@ import base64
 import os
 import subprocess
 from pathlib import Path
+import argparse
 
 from flask import Flask, render_template, url_for, request, redirect
 import jenkins as jenkins_lib
@@ -371,8 +372,12 @@ def config_load():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Weber - WATT User Interface and Management")
+    parser.add_argument("config", metavar="config", type=str, help="Path to config file")
+    args = parser.parse_args()
+
     app.jinja_env.auto_reload = True
     app.config['TEMPLATES_AUTO_RELOAD'] = True
-    app.config['CONFIG_PATH'] = "/vagrant/config.json"
+    app.config['CONFIG_PATH'] = args.config
     load_config()
     app.run(host="0.0.0.0", port=8080, debug=True)
