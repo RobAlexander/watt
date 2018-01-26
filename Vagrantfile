@@ -13,6 +13,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define GIT_BRANCH do |branch|
 
+    branch.vm.provision :shell, :inline => "ln -sf /vagrant/vagrant-env.sh /etc/profile.d/vagrant.sh; echo source /etc/profile.d/vagrant.sh >> ~/.bashrc"
+    branch.vm.provision :shell, :inline => "echo source /etc/profile.d/vagrant.sh >> ~/.bashrc", :privileged => "false"
     branch.vm.provision :shell, :path => "vagrant-setup.sh"
     branch.vm.provision :shell, :path => "vagrant-start.sh"
 

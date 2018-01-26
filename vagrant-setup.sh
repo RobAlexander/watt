@@ -1,13 +1,16 @@
 #!/bin/bash
 
-# Run when provisioning a new vagrant box to setup and install the required software
-echo "=watt="
+# Start by updating the box
+echo "=Ubuntu="
 apt-get update
 apt-get upgrade -y
 
+# Run when provisioning a new vagrant box to setup and install the required software
+echo "=watt="
+
 # Ampere (Mutation)
 echo "==Ampere=="
-cd /vagrant/ampere
+cd $WATT_ROOT/ampere
 echo "===NodeJS Setup==="
 curl -sL https://deb.nodesource.com/setup_6.x | bash -
 apt-get install -y nodejs
@@ -17,7 +20,7 @@ npm install --no-bin-links  # See https://github.com/npm/npm/issues/9901
 
 # Volt (Run testers)
 echo "==Volt=="
-cd /vagrant/volt
+cd $WATT_ROOT/volt
 echo "===PhantomJS==="
 # Installing via apt-get is broken (https://github.com/ariya/phantomjs/issues/14376)
 if [ -e /usr/bin/phantomjs ]
@@ -46,7 +49,7 @@ pip3 install --upgrade pip
 
 # Weber (UI and Automation)
 echo "==Weber=="
-cd /vagrant/weber
+cd $WATT_ROOT/weber
 echo "===Forever==="
 npm install forever -g
 
@@ -60,19 +63,19 @@ then
 else
     wget http://mirrors.jenkins.io/war-stable/latest/jenkins.war
 fi
-mkdir -p /var/jenkins/users/admin
-mkdir -p /var/jenkins/jobs/WATT
-ln -sf /vagrant/weber/jenkins-config.xml /var/jenkins/config.xml
-ln -sf /vagrant/weber/jenkins-user.xml /var/jenkins/users/admin/config.xml
-ln -sf /vagrant/weber/jenkins-job.xml /var/jenkins/jobs/WATT/config.xml
-ln -sf /vagrant/weber/env.sh /etc/profile.d/weber.sh
+mkdir -p $JENKINS_HOME/users/admin
+mkdir -p $JENKINS_HOME/jobs/WATT
+ln -sf $WATT_ROOT/weber/jenkins-config.xml $JENKINS_HOME/config.xml
+ln -sf $WATT_ROOT/weber/jenkins-user.xml $JENKINS_HOME/users/admin/config.xml
+ln -sf $WATT_ROOT/weber/jenkins-job.xml $JENKINS_HOME/jobs/WATT/config.xml
+#ln -sf $WATT_ROOT/weber/env.sh /etc/profile.d/weber.sh
 
 echo "===Weber Package==="
 pip3 install -r requirements.txt
 
 # Ohm (Modelling)
 echo "==Ohm=="
-cd /vagrant/ohm
+cd $WATT_ROOT/ohm
 echo "===Epsilon==="
 if [ -e epsilon-1.4-kitchensink.jar ]
 then
@@ -85,5 +88,5 @@ echo "===Ant==="
 apt-get install -y ant
 
 echo "===Jenkins==="
-mkdir -p /var/jenkins/jobs/mutators
-ln -sf /vagrant/ohm/jenkins-job.xml /var/jenkins/jobs/mutators/config.xml
+mkdir -p $JENKINS_HOME/jobs/mutators
+ln -sf $WATT_ROOT/ohm/jenkins-job.xml $JENKINS_HOME/jobs/mutators/config.xml
