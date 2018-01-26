@@ -14,7 +14,7 @@
         <hudson.model.StringParameterDefinition>
           <name>CodeDestination</name>
           <description>Path to the deployment directory for mutators</description>
-          <defaultValue>/vagrant/ampere/mutators</defaultValue>
+          <defaultValue>$WATT_ROOT/ampere/mutators</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>DataDestination</name>
@@ -34,7 +34,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>ant -buildfile /vagrant/ohm/mutators.xml generate -lib &quot;/vagrant/ohm/epsilon-1.4-kitchensink.jar&quot; -DmutatorFile=${Model} -DworkingDirectory=${WORKSPACE}</command>
+      <command>ant -buildfile $WATT_ROOT/ohm/mutators.xml generate -lib &quot;$WATT_ROOT/ohm/epsilon-1.4-kitchensink.jar&quot; -DmutatorFile=${Model} -DworkingDirectory=${WORKSPACE}</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command>rm -rf ${CodeDestination}</command>

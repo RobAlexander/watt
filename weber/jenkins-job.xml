@@ -9,7 +9,7 @@
         <hudson.model.StringParameterDefinition>
           <name>Pages</name>
           <description>Directory containing pages to mutate</description>
-          <defaultValue>/vagrant/ampere/pages</defaultValue>
+          <defaultValue>$WATT_ROOT/ampere/pages</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>Mutations</name>
@@ -34,16 +34,16 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>bash /vagrant/henry/henry.sh</command>
+      <command>bash $WATT_ROOT/henry/henry.sh</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-      <command>node /vagrant/ampere/ampere.js pages ${Pages} run/pages -m ${Mutations}</command>
+      <command>node $WATT_ROOT/ampere/ampere.js pages ${Pages} run/pages -m ${Mutations}</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-      <command>node /vagrant/volt/volt.js run/pages run/results -t ${Testers}</command>
+      <command>node $WATT_ROOT/volt/volt.js run/pages run/results -t ${Testers}</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-      <command>python3 /vagrant/tesla/tesla.py run/pages run/results run</command>
+      <command>python3 $WATT_ROOT/tesla/tesla.py run/pages run/results run</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
