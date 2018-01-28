@@ -138,7 +138,11 @@ function mutatePage(page, mutator, limit) {
 
         // Place the mutated code into the page
         var parent = match.parentNode;
-        parent.replaceChild(mutated, match);
+        if (mutated == undefined) {
+            parent.removeChild(match);
+        } else {
+            parent.replaceChild(mutated, match);
+        }
 
         // Store cloned page
         mutants.push(mutantPage);
