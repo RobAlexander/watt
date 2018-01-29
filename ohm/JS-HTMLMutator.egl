@@ -14,11 +14,6 @@ function [%= name %]() {
 
 [%= name %].prototype.findEligibleElementsInDocument = function(window) {
     var $ = jquery(window);
-    $.extend($.expr[':'],{
-        parent: function(a) {
-            return $(a).parent().get(0);
-        }
-    });
     return $('[%= mutator.elementSelector %]');
 }
 
