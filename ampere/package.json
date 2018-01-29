@@ -4,6 +4,7 @@
     "main": "ampere.js",
     "dependencies": {
         "jsdom": "11.3.0",
-        "yargs": "10.0.3"
+        "yargs": "10.0.3",
+        "jquery": "3.3.1"
     }
 }

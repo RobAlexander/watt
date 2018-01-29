@@ -11,14 +11,14 @@ function Mutator(name, description) {
 }
 
 Mutator.prototype.eligibleElements = function(page) {
-    return this.findEligibleElementsInDocument(page.window.document);
+    return this.findEligibleElementsInDocument(page.window);
 }
 
 Mutator.prototype.mutate = function(element) {
     return this.mutateElement(element.cloneNode(true));
 }
 
-Mutator.prototype.findEligibleElementsInDocument = function(document) {
+Mutator.prototype.findEligibleElementsInDocument = function(window) {
     return [];
 }
 

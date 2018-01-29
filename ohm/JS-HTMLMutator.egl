@@ -3,6 +3,7 @@
 "use strict";
 
 var Mutator = require('../mutator');
+var jquery = require('jquery');
 
 function [%= name %]() {
     Mutator.call(this, "[%= name %]", "[%= mutator.shortDesc %]");
@@ -11,8 +12,14 @@ function [%= name %]() {
 [%= name %].prototype = Object.create(Mutator.prototype);
 [%= name %].prototype.constructor = [%= name %];
 
-[%= name %].prototype.findEligibleElementsInDocument = function(document) {
-    return document.querySelectorAll("[%= mutator.elementSelector %]");
+[%= name %].prototype.findEligibleElementsInDocument = function(window) {
+    var $ = jquery(window);
+    $.extend($.expr[':'],{
+        parent: function(a) {
+            return $(a).parent().get(0);
+        }
+    });
+    return $('[%= mutator.elementSelector %]');
 }
 
 [%= name %].prototype.mutateElement = function(element) {
