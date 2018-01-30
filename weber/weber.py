@@ -6,6 +6,7 @@ import os
 import subprocess
 from pathlib import Path
 import argparse
+import xml.etree.ElementTree as ET
 
 from flask import Flask, render_template, url_for, request, redirect
 import jenkins as jenkins_lib
@@ -308,6 +309,38 @@ def job_tester_info(job, tester):
                            ]
                           )
 
+# Editor routes
+@app.route('/editor')
+def editor():
+    return redirect(url_for("mutator_editor"))
+
+@app.route('/editor/mutators', methods=["GET"])
+def mutator_editor():
+    model_path = app.config["WEBER_CONFIG"]['mutatorSource']
+    with open(model_path) as f:
+        tree = ET.parse(f)
+    mutator_set = tree.getroot()
+    mutators = []
+    for mutator in list(mutator_set):
+        mutator_data = mutator.attrib
+        mutator_data['elementSelector'] = mutator.findtext('{mutators}elementSelector')
+        mutator_data['mutation'] = mutator.findtext('{mutators}mutation')
+        mutators.append(mutator_data)
+    return render_template("mutator_editor.html",
+                           mutators=mutators, model_path=model_path,
+                           breadcrumb=[
+                               {"name": "Editor", "url": url_for("editor")},
+                               {"name": "Mutation Operators", "url": url_for("mutator_editor")}
+                           ]
+                          )
+
+@app.route('/editor/mutators', methods=["POST"])
+def mutator_editor_save():
+    model_path = app.config["WEBER_CONFIG"]['mutatorSource']
+    with open(model_path, 'w') as f:
+        f.write(request.data.decode('utf-8'))
+    return url_for("config_load")
+
 # Config routes
 
 @app.route('/config', methods=["POST", "GET"])
@@ -380,4 +413,5 @@ if __name__ == '__main__':
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['CONFIG_PATH'] = args.config
     load_config()
+    app.config["WEBER_SETUP"] = True
     app.run(host="0.0.0.0", port=8080, debug=True)

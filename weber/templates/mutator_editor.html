@@ -1,0 +1,315 @@
+{% macro _html_mutator_card(name, short_desc, long_desc, guidelines, examples, element_selector, mutation) -%}
+    <div class="card" data-object="HTMLMutator">
+        <div class="card-header">
+            <h3 data-field="name" data-variety="attribute">{{ name }}</h3>
+        </div>
+        <div class="card-body">
+            <p class="card-subtitle text-muted" data-field="shortDesc" data-variety="attribute">{{ short_desc }}</p>
+            <p class="card-text" data-field="longDesc" data-variety="attribute">{{ long_desc }}</p>
+            <p class="card-text text-muted" data-field="elementSelector" data-variety="element">{{ element_selector }}</p>
+            <textarea class="model-hidden" data-field="mutation" data-variety="element">{{ mutation }}</textarea>
+        </div>
+        <div class="card-body">
+            <a href="#" class="card-link" data-action="edit">Edit</a>
+            <a href="#" class="card-link text-danger" data-action="delete">Delete</a>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% extends 'layout.html' %}
+{% block head %}
+    <style type="text/css">
+        .model-hidden, .model-blanks {
+            display: none;
+        }
+        .model-section-header > * {
+            display: inline-block;
+        }
+    </style>
+    <script type="application/javascript">
+        var editorCurrent = {}, editorNew = {}, deleterCurrent = undefined;
+
+        function addCardActions(card) {
+            var jqCard = $(card);
+            jqCard.find('[data-action="edit"]').click(function() {
+                openEditor(card);
+            });
+            jqCard.find('[data-action="delete"]').click(function() {
+                openDeleter(card);
+            });
+        }
+
+        function getCardField(card, fieldName) {
+            var fieldSelector = '[data-field="' + fieldName + '"]';
+            var selector = '> .card-header > ' + fieldSelector + ', > .card-body > ' + fieldSelector;
+            return $(card).find(selector).get(0);
+        }
+
+        function openEditor(card, caller=undefined) {
+            var type;
+            if (card == null) {
+                type = caller.getAttribute("data-object");
+                editorNew[type] = $(caller).parents("[data-field]").get(0);
+            } else {
+                type = card.getAttribute("data-object");
+            }
+            var modal = $('.model-editor[data-editor="' + type + '"]');
+            modal.find('input, textarea, select').each(function() {
+                var fieldName = $(this).attr("name");
+                if (card == null) {
+                    $(this).val("");
+                } else {
+                    var cardField = getCardField(card, fieldName);
+                    if ($(cardField).attr("data-value")) {
+                        $(this).val($(cardField).attr("data-value"));
+                    } else {
+                        $(this).val(cardField.innerHTML);
+                    }
+                }
+            });
+            editorCurrent[type] = card;
+            modal.modal();
+        }
+
+        function saveEditor(type) {
+            var card = editorCurrent[type];
+            if (card == null) {
+                card = $('.model-blanks > .card[data-object="' + type + '"]').clone(false);
+                addCardActions(card);
+                $(editorNew[type]).find(".model-containment-holder").append(card);
+                editorNew[type] = undefined;
+            }
+            var modal = $('.model-editor[data-editor="' + type + '"]');
+            modal.find('input, textarea, select').each(function() {
+                var fieldName = $(this).attr("name");
+                var cardField = getCardField(card, fieldName);
+                if ($(cardField).attr("data-value")) {
+                    $(cardField).attr("data-value", $(this).val());
+                } else {
+                    cardField.innerHTML = $(this).val();
+                }
+            });
+            editorCurrent[type] = undefined;
+            modal.modal('hide');
+        }
+
+        function openDeleter(card) {
+            var type = card.getAttribute("data-object");
+            var modal = $('.model-deleter');
+            modal.find('[data-item="object"]').text(type);
+            modal.find('[data-item="summary"]').text($(card).find('[data-field]').get(0).innerHTML);
+            deleterCurrent = card;
+            modal.modal();
+        }
+
+        function deleteDeleter() {
+            var card = deleterCurrent;
+            $(card).parent().get(0).removeChild(card);
+            deleterCurrent = undefined;
+            $('.model-deleter').modal('hide');
+        }
+
+        function buildXMLElement(dataObj) {
+            var xml, data = $(dataObj), docu = new DOMParser().parseFromString("<xml></xml>", "application/xml");
+            if (data.parents("[data-field]").length > 0) {
+                // Is a child
+                xml = docu.createElement(data.parents("[data-field]").attr("data-field"));
+                xml.setAttributeNS("xsi", "xsi:type", data.attr("data-object"));
+            } else {
+                // Is the root
+                xml = docu.createElement(data.attr("data-object"));
+                xml.setAttribute("xmlns", data.attr("data-namespace"));
+                xml.setAttribute("xmlns:xmi", "http://www.omg.org/XMI");
+                xml.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+                xml.setAttributeNS("xmi", "xmi:version", "2.0");
+            }
+
+            data.find("> .card-header > [data-field], > .card-body > [data-field], > [data-field]").each(function() {
+                var field = $(this);
+                var fieldName = field.attr("data-field");
+                switch (field.attr("data-variety")) {
+                    case "containment":
+                        field.find("> .model-containment-holder > .card").each(function() {
+                            xml.appendChild(buildXMLElement(this));
+                        });
+                        break;
+                    case "element":
+                        var newElem = docu.createElement(fieldName);
+                        newElem.appendChild(docu.createCDATASection(this.innerHTML));
+                        xml.appendChild(newElem);
+                        break;
+                    case "attribute":
+                        if (field.attr("data-value") && field.attr("data-value") != "") {
+                            xml.setAttribute(fieldName, field.attr("data-value"));
+                        } else if (this.innerHTML != "") {
+                            xml.setAttribute(fieldName, this.innerHTML);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            });
+
+            return xml;
+        }
+
+        function storeModel(storageName=undefined) {
+            var xml = buildXMLElement($("#model-root"));
+            if (storageName != undefined) window.localStorage.setItem(storageName, new XMLSerializer().serializeToString(xml));
+
+            return xml;
+        }
+
+        function saveModel() {
+            $('#saving-modal').modal();
+
+            // Build XML Model
+            var xml = storeModel("lastSave");
+            
+            // Convert to XML
+            var xmlString = '<?xml version="1.0" encoding="UTF-8"?>' + new XMLSerializer().serializeToString(xml);
+            
+            // Send to Server
+            jQuery.ajax({
+                'contentType': "application/xml",
+                'data': xmlString,
+                'method': "POST",
+                'success': function(data) {
+                    window.location.href = data;
+                },
+                'error': function(jqXHR, textStatus, errorThrown) {
+                    console.error(errorThrown);
+                    alert(textStatus);
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            var modelEditors = $(".model-editor");
+            modelEditors.on("shown.bs.modal", function() {
+                $($(this).find("input, textarea").get(0)).trigger('focus');
+            });
+            modelEditors.find('button[data-action="save"]').click(function() {
+                saveEditor($(this).parents(".model-editor").get(0).getAttribute("data-editor"));
+            });
+
+            $('.model-deleter button[data-action="delete"]').click(function() {
+                deleteDeleter();
+            });
+
+            $(".model-containment-holder > .card, .model-blanks > .card").each(function() {
+                addCardActions(this);
+            });
+
+            $('.model-section-containment .model-section-header [data-action="new"]').click(function() {
+                openEditor(null, this);
+            });
+
+            $('.model-options button[data-action="save"]').click(function() {
+                saveModel();
+            });
+        })
+    </script>
+{% endblock %}
+{% block body %}
+    <h1>Mutation Editor</h1>
+    <p class="font-italic text-muted">{{ model_path }}</p>
+    <div class="model" id="model-root" data-object="MutatorSet", data-namespace="mutators">
+        <div id="mutators" class="model-section model-section-containment" data-field="mutators" data-variety="containment">
+            <div class="model-section-header">
+                <h2>Mutations</h2>
+                <button type="button" class="btn btn-primary btn-sm" data-action="new" data-object="HTMLMutator"><span aria-hidden="true">&plus;</span> Add</button>
+            </div>
+            <div class="model-section-body model-containment-holder">
+                {% for mutator in mutators %}
+                    {{ _html_mutator_card(mutator['name'], mutator['shortDesc'], mutator['longDesc'], mutator['guidelines'], mutator['examples'], mutator['elementSelector'], mutator['mutation']) }}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="model-options">
+        <button type="button" class="btn btn-primary" data-action="save">Save Model</button>
+    </div>
+    <!-- Edit modals -->
+    <div class="modal fade model-editor" tabindex="-1" role="dialog" data-editor="HTMLMutator">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">HTML Mutator</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form name="HTMLMutator">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" name="name" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="shortDesc">Short Description</label>
+                            <input type="text" name="shortDesc" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="name">Long Description</label>
+                            <input type="text" name="longDesc" class="form-control" />
+                        </div>
+                        <hr />
+                        <div class="form-group">
+                            <label for="elementSelector">Element Selector</label>
+                            <input type="text" name="elementSelector" class="form-control" aria-describedby="elementSelector-help" />
+                            <p class="form-text text-muted" id="elementSelector-help">Selector according to the <a href="https://api.jquery.com/category/selectors/" target="_blank">jQuery Selectors API</a></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="mutation">Mutation</label>
+                            <textarea name="mutation" class="form-control" aria-describedby="mutation-help"></textarea>
+                            <p class="form-text text-muted" id="mutation-help">Modify <code>element</code> using JavaScript</p>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-action="save">Save</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade model-deleter" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Action</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>You are about to delete <span class="text-weight-bold" data-item="object"></span> item <span class="text-weight-bold" data-item="summary"></span>.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-action="delete">Delete</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Keep</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" tabindex="-1" role="dialog" id="saving-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Saving...</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Blank Cards -->
+    <div class="model-blanks">
+        {{ _html_mutator_card("", "", "", "", "", "", "") }}
+    </div>
+{% endblock %}
