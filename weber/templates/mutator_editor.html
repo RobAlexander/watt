@@ -7,7 +7,7 @@
             <p class="card-subtitle text-muted" data-field="shortDesc" data-variety="attribute">{{ short_desc }}</p>
             <p class="card-text" data-field="longDesc" data-variety="attribute">{{ long_desc }}</p>
             <p class="card-text text-muted" data-field="elementSelector" data-variety="element">{{ element_selector }}</p>
-            <p class="card-text text-muted text-italic" data-field="guidelines" data-variety="noncontainment">
+            <p class="card-text text-muted text-italic model-noncontainment-holder" data-field="guidelines" data-variety="noncontainment">
                 {% for guideline in guidelines %}  
                     <span class="model-noncontainment-item" data-value="{{ guideline }}"></span>
                 {% endfor %}
@@ -26,8 +26,8 @@
             </div>
         </div>
         <div class="card-body">
-            <a href="#" class="card-link" data-action="edit">Edit</a>
-            <a href="#" class="card-link text-danger" data-action="delete">Delete</a>
+            <a href="javascript:void(0);" class="card-link" data-action="edit">Edit</a>
+            <a href="javascript:void(0);" class="card-link text-danger" data-action="delete">Delete</a>
         </div>
     </div>
 {%- endmacro %}
@@ -38,8 +38,8 @@
             <textarea readonly class="form-control" data-field="after" data-variety="element">{{ unautoescape(after) }}</textarea>
         </div>
         <div class="card-body">
-            <a href="#" class="card-link" data-action="edit">Edit</a>
-            <a href="#" class="card-link text-danger" data-action="delete">Delete</a>
+            <a href="javascript:void(0);" class="card-link" data-action="edit">Edit</a>
+            <a href="javascript:void(0);" class="card-link text-danger" data-action="delete">Delete</a>
         </div>
     </div>
 {%- endmacro %}
@@ -52,8 +52,8 @@
             <p class="card-text" data-field="link" data-variety="attribute">{{ link }}</p>
         </div>
         <div class="card-body">
-            <a href="#" class="card-link" data-action="edit">Edit</a>
-            <a href="#" class="card-link text-danger" data-action="delete">Delete</a>
+            <a href="javascript:void(0);" class="card-link" data-action="edit">Edit</a>
+            <a href="javascript:void(0);" class="card-link text-danger" data-action="delete">Delete</a>
         </div>
     </div>
 {%- endmacro %}
@@ -72,6 +72,15 @@
         }
         .model-section-header > * {
             display: inline-block;
+        }
+        .model-noncontainment-item {
+            margin-right: 4px;
+        }
+        .model-noncontainment-item::after {
+            content: ",";
+        }
+        .model-noncontainment-item:last-of-type::after {
+            content: "";
         }
 
         .card[data-object="example"] {
@@ -242,7 +251,7 @@
             if (card == null) {
                 card = $('.model-blanks > .card[data-object="' + type + '"]').clone(false);
                 addCardActions(card.get(0));
-                $(editorNew[type]).find(".model-containment-holder").append(card);
+                $(editorNew[type]).find("> .model-containment-holder").append(card);
                 editorNew[type] = undefined;
             }
             var modal = $('.model-editor[data-editor="' + type + '"]');
