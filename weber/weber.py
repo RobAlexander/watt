@@ -319,12 +319,19 @@ def mutator_editor():
     model_path = app.config["WEBER_CONFIG"]['mutatorSource']
     with open(model_path) as f:
         tree = ET.parse(f)
+    MODEL_NAMESPACE = '{mutators}'
     mutator_set = tree.getroot()
     mutators = []
     for mutator in list(mutator_set):
         mutator_data = mutator.attrib
-        mutator_data['elementSelector'] = mutator.findtext('{mutators}elementSelector')
-        mutator_data['mutation'] = mutator.findtext('{mutators}mutation')
+        mutator_data['elementSelector'] = mutator.findtext(MODEL_NAMESPACE + 'elementSelector')
+        mutator_data['mutation'] = mutator.findtext(MODEL_NAMESPACE + 'mutation')
+        mutator_data['examples'] = []
+        for example in mutator.findall(MODEL_NAMESPACE + 'examples'):
+            example_data = example.attrib
+            example_data['before'] = example.findtext(MODEL_NAMESPACE + 'before')
+            example_data['after'] = example.findtext(MODEL_NAMESPACE + 'after')
+            mutator_data['examples'].append(example_data)
         mutators.append(mutator_data)
     return render_template("mutator_editor.html",
                            mutators=mutators, model_path=model_path,

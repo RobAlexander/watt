@@ -1,4 +1,4 @@
-{% macro _html_mutator_card(name, short_desc, long_desc, guidelines, examples, element_selector, mutation) -%}
+{% macro _html_mutator_card(name, short_desc="", long_desc="", guidelines=[], examples=[], element_selector="", mutation="") -%}
     <div class="card" data-object="HTMLMutator">
         <div class="card-header">
             <h3 data-field="name" data-variety="attribute">{{ name }}</h3>
@@ -7,13 +7,42 @@
             <p class="card-subtitle text-muted" data-field="shortDesc" data-variety="attribute">{{ short_desc }}</p>
             <p class="card-text" data-field="longDesc" data-variety="attribute">{{ long_desc }}</p>
             <p class="card-text text-muted" data-field="elementSelector" data-variety="element">{{ element_selector }}</p>
-            <textarea class="model-hidden" data-field="mutation" data-variety="element">{{ mutation }}</textarea>
+            <textarea class="model-hidden" data-field="mutation" data-variety="element">{{ unautoescape(mutation) }}</textarea>
+            <div class="model-section model-section-containment" data-field="examples" data-variety="containment">
+                <div class="model-section-header">
+                    <h3>Examples</h3>
+                    <button type="button" class="btn btn-primary btn-sm" data-action="new" data-object="Example"><span aria-hidden="true">&plus;</span> Add</button>
+                </div>
+                <div class="model-section-body model-containment-holder">
+                    {% for example in examples %}
+                        {{ _example_card(example['before'], example['after']) }}
+                    {% endfor %}
+                </div>
+            </div>
         </div>
         <div class="card-body">
             <a href="#" class="card-link" data-action="edit">Edit</a>
             <a href="#" class="card-link text-danger" data-action="delete">Delete</a>
         </div>
     </div>
+{%- endmacro %}
+{% macro _example_card(before, after) -%}
+    <div class="card" data-object="Example">
+        <div class="card-body">
+            <textarea readonly class="form-control" data-field="before" data-variety="element">{{ unautoescape(before) }}</textarea>
+            <textarea readonly class="form-control" data-field="after" data-variety="element">{{ unautoescape(after) }}</textarea>
+        </div>
+        <div class="card-body">
+            <a href="#" class="card-link" data-action="edit">Edit</a>
+            <a href="#" class="card-link text-danger" data-action="delete">Delete</a>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro unautoescape(text) -%}
+    {% autoescape false %}
+        {{ text }}
+    {% endautoescape %}
 {%- endmacro %}
 
 {% extends 'layout.html' %}
@@ -25,8 +54,20 @@
         .model-section-header > * {
             display: inline-block;
         }
+
+        .card[data-object="example"] {
+            width: 18rem;
+        }
+        div[data-field="examples"] > .model-containment-holder > .card {
+            display: inline-block;
+            margin-right: 8px;
+        }
     </style>
     <script type="application/javascript">
+        function ltgtReplacement(text) {
+            return text.replace("&lt;", "<").replace("&gt;", ">");
+        }
+        
         var editorCurrent = {}, editorNew = {}, deleterCurrent = undefined;
 
         function addCardActions(card) {
@@ -63,7 +104,7 @@
                     if ($(cardField).attr("data-value")) {
                         $(this).val($(cardField).attr("data-value"));
                     } else {
-                        $(this).val(cardField.innerHTML);
+                        $(this).val(ltgtReplacement(cardField.innerHTML));
                     }
                 }
             });
@@ -86,7 +127,7 @@
                 if ($(cardField).attr("data-value")) {
                     $(cardField).attr("data-value", $(this).val());
                 } else {
-                    cardField.innerHTML = $(this).val();
+                    cardField.innerHTML = ltgtReplacement($(this).val());
                 }
             });
             editorCurrent[type] = undefined;
@@ -135,14 +176,14 @@
                         break;
                     case "element":
                         var newElem = docu.createElement(fieldName);
-                        newElem.appendChild(docu.createCDATASection(this.innerHTML));
+                        newElem.appendChild(docu.createCDATASection(ltgtReplacement(this.innerHTML)));
                         xml.appendChild(newElem);
                         break;
                     case "attribute":
                         if (field.attr("data-value") && field.attr("data-value") != "") {
                             xml.setAttribute(fieldName, field.attr("data-value"));
                         } else if (this.innerHTML != "") {
-                            xml.setAttribute(fieldName, this.innerHTML);
+                            xml.setAttribute(fieldName, ltgtReplacement(this.innerHTML));
                         }
                         break;
                     default:
@@ -275,6 +316,34 @@
             </div>
         </div>
     </div>
+    <div class="modal fade model-editor" tabindex="-1" role="dialog" data-editor="Example">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Example</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form name="Example">
+                        <div class="form-group">
+                            <label for="before">Before</label>
+                            <textarea name="before" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="after">After</label>
+                            <textarea name="after" class="form-control"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-action="save">Save</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade model-deleter" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -310,6 +379,7 @@
     </div>
     <!-- Blank Cards -->
     <div class="model-blanks">
-        {{ _html_mutator_card("", "", "", "", "", "", "") }}
+        {{ _html_mutator_card("") }}
+        {{ _example_card("", "") }}
     </div>
 {% endblock %}
