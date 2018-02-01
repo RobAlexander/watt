@@ -329,6 +329,8 @@ def mutator_editor():
         mutator_data = mutator.attrib
         mutator_data['elementSelector'] = mutator.findtext(MODEL_NAMESPACE + 'elementSelector')
         mutator_data['mutation'] = mutator.findtext(MODEL_NAMESPACE + 'mutation')
+        if 'guidelines' in mutator_data.keys():
+            mutator_data['guidelines'] = mutator_data['guidelines'].split(" ")
         mutator_data['examples'] = []
         for example in mutator.findall(MODEL_NAMESPACE + 'examples'):
             example_data = example.attrib

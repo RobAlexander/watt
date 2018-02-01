@@ -7,6 +7,11 @@
             <p class="card-subtitle text-muted" data-field="shortDesc" data-variety="attribute">{{ short_desc }}</p>
             <p class="card-text" data-field="longDesc" data-variety="attribute">{{ long_desc }}</p>
             <p class="card-text text-muted" data-field="elementSelector" data-variety="element">{{ element_selector }}</p>
+            <p class="card-text text-muted text-italic" data-field="guidelines" data-variety="noncontainment">
+                {% for guideline in guidelines %}  
+                    <span class="model-noncontainment-item" data-value="{{ guideline }}"></span>
+                {% endfor %}
+            </p>
             <textarea class="model-hidden" data-field="mutation" data-variety="element">{{ unautoescape(mutation) }}</textarea>
             <div class="model-section model-section-containment" data-field="examples" data-variety="containment">
                 <div class="model-section-header">
@@ -84,6 +89,93 @@
         
         var editorCurrent = {}, editorNew = {}, deleterCurrent = undefined;
 
+        function findNoncontainmentItem(value) {
+            // Very basic lookup only
+            var processedValue = value, foundNode;
+            // Start path
+            if (value.startsWith("//")) {
+                foundNode = $("#model-root");
+            } else {
+                foundNode = jqSpan.parents("[data-object]").get(0);
+                if (value == ".") {
+                    return foundNode;
+                }
+            }
+            processedValue = value.substring(2);
+            // split up search path
+            var searchPath = processedValue.split("/");
+            try {
+                for (var i = 0; i < searchPath.length; i++) {
+                    var searchItem = searchPath[i], nodeCollection;
+                    if (searchItem.startsWith("@")) {
+                        // Looking for field
+                        var fieldName = searchItem.substring(1).split(".")[0];
+                        var field = $(foundNode).find('> [data-field="' + fieldName + '"], > .card-header > [data-field="' + fieldName + '"], > .card-body > [data-field="' + fieldName + '"]').get(0);
+                        if ($(field).attr("data-variety") == "containment") {
+                            nodeCollection = $(field).find('> .model-containment-holder > .card');
+                        } else {
+                            // Assuming it is a singlecontainment
+                            nodeCollection = $(field).children(".card");
+                        }
+                    } else {
+                        // Looking for object
+                        var objectName = searchItem.split(".")[0];
+                        nodeCollection = $(foundNode).find('[data-object="' + objectName + '"]');
+                    }
+                    if (searchItem.indexOf(".") != -1) {
+                        foundNode = nodeCollection.get(searchItem.split(".")[1]);
+                    } else {
+                        foundNode = nodeCollection.get(0);
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+                alert("The model could not be loaded correctly");
+                $(".model-options").hide();
+            }
+            
+            return foundNode;
+        }
+
+        function findNoncontainmentValue(object) {
+            var reversePath = [];
+            var currentNode = object;
+            while (currentNode.id != "model-root") {
+                var field = $(object).parents('[data-field]').get(0);
+                var fieldName = $(field).attr("data-field");
+                if ($(field).attr("data-variety") == "containment") {
+                    var fieldPosition = $(field).find("> .model-containment-holder > .card").index(currentNode);
+                    reversePath.push("@" + fieldName + "." + fieldPosition);
+                } else {
+                    reversePath.push("@" + fieldName);
+                }
+                currentNode = $(field).parents("[data-object]").get(0);
+            }
+            return "//" + reversePath.reverse().join("/");
+        }
+
+        function getFieldText(field) {
+            switch (field.tagName.toUpperCase()) {
+                case "INPUT":
+                case "SELECT":
+                case "TEXTAREA":
+                    return $(field).val();
+                    break;
+                default:
+                    return field.innerHTML;
+            }
+        }
+
+        function displayNoncontainmentItem(span) {
+            jqSpan = $(span);
+            var object = findNoncontainmentItem(jqSpan.attr("data-value"));
+            var displayField = $(object).find('> [data-field][data-variety="attribute"], > * > [data-field][data-variety="attribute"]').get(0);
+            jqSpan.html(getFieldText(displayField));
+            jqSpan.click(function() {
+                $('html, document').scrollTop($(object).offset().top);
+            });
+        }
+
         function addCardActions(card) {
             var jqCard = $(card);
             jqCard.find('> .card-header > [data-action="edit"], > .card-body > [data-action="edit"]').click(function() {
@@ -111,11 +203,30 @@
             var modal = $('.model-editor[data-editor="' + type + '"]');
             modal.find('input, textarea, select').each(function() {
                 var fieldName = $(this).attr("name");
+                if (this.tagName.toUpperCase() == "SELECT") {
+                    $(this).find("option").remove();
+                    var objects = $(this).attr("data-objects").split(" ");
+                    for (var i = 0; i < objects.length; i++) {
+                        var entities = $("#model-root").find('.card[data-object="' + objects[i] + '"]');
+                        for (var j = 0; j < entities.length; j++) {
+                            var option = document.createElement("option");
+                            option.setAttribute("value", findNoncontainmentValue(entities[j]));
+                            option.appendChild(document.createTextNode(getFieldText($(entities[j]).find('> [data-field][data-variety="attribute"], > * > [data-field][data-variety="attribute"]').get(0))));
+                            this.appendChild(option);
+                        }
+                    }
+                }
                 if (card == null) {
                     $(this).val("");
                 } else {
                     var cardField = getCardField(card, fieldName);
-                    if ($(cardField).attr("data-value")) {
+                    if ($(cardField).attr("data-variety") == "noncontainment") {
+                        var vals = []
+                        $(cardField).find("span").each(function() {
+                            vals.push($(this).attr("data-value"));
+                        });
+                        $(this).val(vals);
+                    } else if ($(cardField).attr("data-value")) {
                         $(this).val($(cardField).attr("data-value"));
                     } else {
                         $(this).val(ltgtReplacement(cardField.innerHTML));
@@ -138,7 +249,16 @@
             modal.find('input, textarea, select').each(function() {
                 var fieldName = $(this).attr("name");
                 var cardField = getCardField(card, fieldName);
-                if ($(cardField).attr("data-value")) {
+                if ($(cardField).attr("data-variety") == "noncontainment") {
+                    $(cardField).find("span").remove();
+                    $(this).val().forEach(val => {
+                        var span = document.createElement("span");
+                        span.setAttribute("data-value", val);
+                        span.setAttribute("class", "model-noncontainment-item");
+                        displayNoncontainmentItem(span);
+                        cardField.appendChild(span);
+                    });
+                } else if ($(cardField).attr("data-value")) {
                     $(cardField).attr("data-value", $(this).val());
                 } else {
                     cardField.innerHTML = ltgtReplacement($(this).val());
@@ -200,6 +320,15 @@
                             xml.setAttribute(fieldName, ltgtReplacement(this.innerHTML));
                         }
                         break;
+                    case "noncontainment":
+                        var items = [];
+                        field.find('> .model-noncontainment-item').each(function() {
+                            items.push($(this).attr("data-value"));
+                        });
+                        if (items.length > 0) {
+                            xml.setAttribute(fieldName, items.join(" "));
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -247,11 +376,13 @@
             modelEditors.find('button[data-action="save"]').click(function() {
                 saveEditor($(this).parents(".model-editor").get(0).getAttribute("data-editor"));
             });
-
             $('.model-deleter button[data-action="delete"]').click(function() {
                 deleteDeleter();
             });
 
+            $('.model-noncontainment-item').each(function() {
+                displayNoncontainmentItem(this);
+            })
             $(".model-containment-holder > .card, .model-blanks > .card").each(function() {
                 addCardActions(this);
             });
@@ -259,7 +390,6 @@
             $('.model-section-containment .model-section-header [data-action="new"]').click(function() {
                 openEditor(null, this);
             });
-
             $('.model-options button[data-action="save"]').click(function() {
                 saveModel();
             });
@@ -320,6 +450,11 @@
                         <div class="form-group">
                             <label for="name">Long Description</label>
                             <input type="text" name="longDesc" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="guidelines">Guidelines</label>
+                            <select multiple name="guidelines" class="form-control" data-objects="Guideline">
+                            </select>
                         </div>
                         <hr />
                         <div class="form-group">
