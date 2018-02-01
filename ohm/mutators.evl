@@ -8,13 +8,13 @@ context Mutator {
 
 context Guideline {
     critique GuidelineLinkURL {
-        guard: self.guidelineLink.isDefined()
-        check: self.guidelineLink.startsWith("http://") or self.guidelineLink.startsWith("https://")
+        guard: self.link.isDefined()
+        check: self.link.startsWith("http://") or self.link.startsWith("https://")
         message: self.guideline + " is not a valid link"
         fix {
             title: "Remove link"
             do {
-                self.guidelineLink = "";
+                self.link = "";
             }
         }
     }

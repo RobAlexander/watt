@@ -2,6 +2,6 @@
     Mutation Operator & Description & Guideline \\
     [% for (mutator in mutatorSet.mutators) { %]
         \hline
-        [%= mutator.name %] & [%= mutator.shortDesc %] & [% if (mutator.guideline.size() > 0) { %][%= mutator.guideline[0].name %][% } else { %]-[% } %] \\
+        [%= mutator.name %] & [%= mutator.shortDesc %] & [% if (mutator.guidelines.size() > 0) { %][%= mutator.guidelines[0].name %][% } else { %]-[% } %] \\
     [% } %]
 \end{tabular}

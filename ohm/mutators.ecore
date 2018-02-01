@@ -12,7 +12,7 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="shortDesc" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="longDesc" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="guideline" upperBound="-1"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="guidelines" upperBound="-1"
         eType="#//Guideline"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="examples" upperBound="-1"
         eType="#//Example" containment="true"/>

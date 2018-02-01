@@ -10,7 +10,7 @@ abstract class Mutator {
     attr String[1] name;
     attr String[1] shortDesc;
     attr String longDesc;
-    ref Guideline[*] guideline;
+    ref Guideline[*] guidelines;
     val Example[*] examples;
 }
 
