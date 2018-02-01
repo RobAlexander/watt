@@ -38,6 +38,20 @@
         </div>
     </div>
 {%- endmacro %}
+{% macro _guideline_card(name, link="") -%}
+    <div class="card" data-object="Guideline">
+        <div class="card-header">
+            <h3 data-field="name" data-variety="attribute">{{ name }}</h3>
+        </div>
+        <div class="card-body">
+            <p class="card-text" data-field="link" data-variety="attribute">{{ link }}</p>
+        </div>
+        <div class="card-body">
+            <a href="#" class="card-link" data-action="edit">Edit</a>
+            <a href="#" class="card-link text-danger" data-action="delete">Delete</a>
+        </div>
+    </div>
+{%- endmacro %}
 
 {% macro unautoescape(text) -%}
     {% autoescape false %}
@@ -267,6 +281,17 @@
                 {% endfor %}
             </div>
         </div>
+        <div id="guidelines" class="model-section model-section-containment" data-field="guidelines" data-variety="containment">
+            <div class="model-section-header">
+                <h2>Guidelines</h2>
+                <button type="button" class="btn btn-primary btn-sm" data-action="new" data-object="Guideline"><span aria-hidden="true">&plus;</span> Add</button>
+            </div>
+            <div class="model-section-body model-containment-holder">
+                {% for guideline in guidelines %}
+                    {{ _guideline_card(guideline['name'], guideline['link']) }}
+                {% endfor %}
+            </div>
+        </div>
     </div>
     <hr />
     <div class="model-options">
@@ -344,6 +369,34 @@
             </div>
         </div>
     </div>
+    <div class="modal fade model-editor" tabindex="-1" role="dialog" data-editor="Guideline">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Guideline</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form name="Guideline">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" name="name" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="link">Link</label>
+                            <input type="url" name="link" class="form-control" />
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-action="save">Save</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade model-deleter" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -381,5 +434,6 @@
     <div class="model-blanks">
         {{ _html_mutator_card("") }}
         {{ _example_card("", "") }}
+        {{ _guideline_card("") }}
     </div>
 {% endblock %}

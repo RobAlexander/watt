@@ -321,8 +321,11 @@ def mutator_editor():
         tree = ET.parse(f)
     MODEL_NAMESPACE = '{mutators}'
     mutator_set = tree.getroot()
+    guidelines = []
+    for guideline in mutator_set.findall(MODEL_NAMESPACE + 'guidelines'):
+        guidelines.append(guideline.attrib)
     mutators = []
-    for mutator in list(mutator_set):
+    for mutator in mutator_set.findall(MODEL_NAMESPACE + 'mutators'):
         mutator_data = mutator.attrib
         mutator_data['elementSelector'] = mutator.findtext(MODEL_NAMESPACE + 'elementSelector')
         mutator_data['mutation'] = mutator.findtext(MODEL_NAMESPACE + 'mutation')
@@ -334,7 +337,7 @@ def mutator_editor():
             mutator_data['examples'].append(example_data)
         mutators.append(mutator_data)
     return render_template("mutator_editor.html",
-                           mutators=mutators, model_path=model_path,
+                           mutators=mutators, guidelines=guidelines, model_path=model_path,
                            breadcrumb=[
                                {"name": "Editor", "url": url_for("editor")},
                                {"name": "Mutation Operators", "url": url_for("mutator_editor")}
