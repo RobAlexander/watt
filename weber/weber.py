@@ -425,5 +425,4 @@ if __name__ == '__main__':
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['CONFIG_PATH'] = args.config
     load_config()
-    app.config["WEBER_SETUP"] = True
     app.run(host="0.0.0.0", port=8080, debug=True)
