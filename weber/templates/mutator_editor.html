@@ -72,10 +72,10 @@
 
         function addCardActions(card) {
             var jqCard = $(card);
-            jqCard.find('[data-action="edit"]').click(function() {
+            jqCard.find('> .card-header > [data-action="edit"], > .card-body > [data-action="edit"]').click(function() {
                 openEditor(card);
             });
-            jqCard.find('[data-action="delete"]').click(function() {
+            jqCard.find('> .card-header > [data-action="delete"], > .card-body > [data-action="delete"]').click(function() {
                 openDeleter(card);
             });
         }
@@ -116,7 +116,7 @@
             var card = editorCurrent[type];
             if (card == null) {
                 card = $('.model-blanks > .card[data-object="' + type + '"]').clone(false);
-                addCardActions(card);
+                addCardActions(card.get(0));
                 $(editorNew[type]).find(".model-containment-holder").append(card);
                 editorNew[type] = undefined;
             }
