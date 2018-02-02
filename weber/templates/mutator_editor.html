@@ -93,7 +93,7 @@
     </style>
     <script type="application/javascript">
         function ltgtReplacement(text) {
-            return text.replace("&lt;", "<").replace("&gt;", ">");
+            return text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
         }
         
         var editorCurrent = {}, editorNew = {}, deleterCurrent = undefined;
