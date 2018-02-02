@@ -96,7 +96,7 @@
             return text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
         }
         
-        var editorCurrent = {}, editorNew = {}, deleterCurrent = undefined;
+        var editorCurrent = {}, editorNew = {}, deleterCurrent = undefined, editMade = false;
 
         function findNoncontainmentItem(value) {
             // Very basic lookup only
@@ -274,6 +274,7 @@
                 }
             });
             editorCurrent[type] = undefined;
+            editMade = true;
             modal.modal('hide');
         }
 
@@ -290,6 +291,7 @@
             var card = deleterCurrent;
             $(card).parent().get(0).removeChild(card);
             deleterCurrent = undefined;
+            editMade = true;
             $('.model-deleter').modal('hide');
         }
 
@@ -368,6 +370,7 @@
                 'data': xmlString,
                 'method': "POST",
                 'success': function(data) {
+                    editMade = false;
                     window.location.href = data;
                 },
                 'error': function(jqXHR, textStatus, errorThrown) {
@@ -402,7 +405,12 @@
             $('.model-options button[data-action="save"]').click(function() {
                 saveModel();
             });
-        })
+        });
+        $(window).on("beforeunload", function() {
+            if (editMade) {
+                return "You have unsaved changes. Leave?";
+            }
+        });
     </script>
 {% endblock %}
 {% block body %}
