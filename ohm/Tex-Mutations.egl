@@ -1,7 +1,7 @@
-\begin{tabular}{ c|c|c }
-    Mutation Operator & Description & Guideline \\
+\begin{tabular}{ l|l|l }
+    \textbf{Operator} & \textbf{Description} & \textbf{Guideline} \\
     [% for (mutator in mutatorSet.mutators) { %]
         \hline
-        [%= mutator.name %] & [%= mutator.shortDesc %] & [% if (mutator.guidelines.size() > 0) { %][%= mutator.guidelines[0].name %][% } else { %]-[% } %] \\
+        [%= mutator.name %] & [%= mutator.shortDesc %] & [% if (mutator.guidelines.size() > 0) { %][%= mutator.guidelines[0].name.split("-").last() %][% } else { %]-[% } %] \\
     [% } %]
 \end{tabular}
