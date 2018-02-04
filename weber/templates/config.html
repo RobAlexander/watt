@@ -18,6 +18,11 @@
             <small id="sourceHelp" class="form-text text-muted">Path on server file system to use.</small>
         </div>
         <div class="form-group">
+            <label for="pagesDir">Default Pages Directory</label>
+            <input type="text" class="form-control" id="pagesdir" name="pagesDir" aria-describedby="pagesHelp" placeholder="Pages directory path" value="{{ pages_dir }}">
+            <small id="pagesHelp" class="form-text text-muted">Path on server file system to use.</small>
+        </div>
+        <div class="form-group">
             <label for="root">WATT Root</label>
             <input type="text" class="form-control" id="root" name="root" aria-describedby="rootHelp" placeholder="Root file path" readonly value="{{ root }}">
             <small id="rootHelp" class="form-text text-muted">Path on server file system to use.</small>

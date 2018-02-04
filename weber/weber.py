@@ -21,7 +21,7 @@ JENKINS_PASSWORD = JENKINS_USERNAME
 JENKINS_REQUESTS_AUTH = HTTPBasicAuth('admin', 'admin')
 JENKINS_CONFIG_JOB_NAME="mutators"
 
-CONFIG_REQUIRED_KEYS = ["mutatorSource", "root", "dataRoot"]
+CONFIG_REQUIRED_KEYS = ["mutatorSource", "root", "dataRoot", "pagesDir"]
 
 app = Flask(__name__)
 jenkins = jenkins_lib.Jenkins(
@@ -165,6 +165,8 @@ def new():
             params[param['name']] = param['defaultParameterValue']['value']
             if params[param['name']] == "":
                 params[param['name']] = None
+        if "pagesDir" in app.config["WEBER_CONFIG"] and app.config["WEBER_CONFIG"]["pagesDir"] != "":
+            params['Pages'] = app.config["WEBER_CONFIG"]["pagesDir"]
         all_mutations = [f.split(".")[0] for f in os.listdir(get_mutators_directory()) if os.path.isfile(os.path.join(get_mutators_directory(), f))]
         all_testers = [f.split(".")[0] for f in os.listdir(get_testers_directory()) if os.path.isfile(os.path.join(get_testers_directory(), f)) and f.split(".")[-1] == "sh"]
         return render_template("new.html",
@@ -372,7 +374,7 @@ def config():
             return redirect(url_for("main"))
     else:
         return render_template("config.html",
-                               mutator_source=config["mutatorSource"], root=config["root"], data_root=config["dataRoot"],
+                               mutator_source=config["mutatorSource"], root=config["root"], data_root=config["dataRoot"], pages_dir=config["pagesDir"],
                                trap_nav=not config_valid(),
                                breadcrumb=[
                                    {"name": "Config", "url": url_for("config")}
