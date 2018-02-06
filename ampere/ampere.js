@@ -10,6 +10,7 @@
 require('../common/common'); // Used to patch in some common extra functionality
 var fs = require('fs'), path = require("path"), jsdom = require("jsdom");
 const { JSDOM } = jsdom;
+const pageTypes = ["html"];
 
 // Basic config
 var ampereName = "Ampere";
@@ -59,11 +60,16 @@ var generatedPagesDirectory = argv.output;
 // Construct list of pages to use
 var pagesList = [];
 if (argv.dir) {
-    fs.readdirSync(argv.dir).forEach(page => {
-        var pagePath = path.join(argv.dir, page);
-        // Check the page is a file and not a directory
-        if (!fs.statSync(pagePath).isDirectory()) {
-            pagesList.push(pagePath);
+    fs.readdirSync(path.join(argv.dir, "desc")).forEach(page => {
+        var pageName = page.split(".").slice(0, -1).join(".");  // General page name
+        for (var i = 0; i < pageTypes.length; i++) {
+            var pagePath = path.join(argv.dir, pageTypes[i], pageName + "." + pageTypes[i]);
+            // Check the page exists and is a file and not a directory
+            if (fs.existsSync(pagePath) && !fs.statSync(pagePath).isDirectory()) {
+                // Once link pages have been created there will need to be download logic here
+                pagesList.push(pagePath);
+                break;
+            }
         }
     });
 } else {
