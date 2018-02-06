@@ -22,9 +22,9 @@ def build_pages_list(directory):
 
 def load_reports(directory):
     testers = os.listdir(directory)
-    for tester in testers:
+    for tester in testers:  # For each tester
         if tester[0] != '.' and stat.S_ISDIR(os.stat(path.join(directory, tester)).st_mode):
-            for result in os.listdir(path.join(directory, tester)):
+            for result in os.listdir(path.join(directory, tester)):  # For each page that tester ran on
                 with open(path.join(directory, tester, result)) as f:
                     json_data = json.load(f)
                     page_name = ".".join(result.split(".")[:-1])
@@ -65,6 +65,7 @@ def build_stats(report_object, output):
                 if tester not in testers.keys():
                     testers[tester] = {"live": 0, "mutation_score": nan}
                 if (failure is 0 and report_object[page['parent']]['failures'][tester] is 0 and tester != 'vnu') or (tester == "vnu" and failure is not 0):
+                    # VNU is a special case since it should always return 0, otherwise it isn't valid HTML
                     testers[tester]['live'] += 1
     for tester in testers.keys():
         testers[tester]['mutation_score'] = testers[tester]['live'] / float(mutants)
@@ -82,7 +83,7 @@ def check_equivalence(pages, report_object, output):
         equivalence = None
         if page_data['parent'] is not None:
             live = False
-            for _, failures in page_data['failures'].items():
+            for _, failures in page_data['failures'].items(): # For each failure found on the page
                 if failures is not 0:
                     live = True
             if live:
@@ -90,8 +91,9 @@ def check_equivalence(pages, report_object, output):
                     mutant = f.readlines()
                 with open(path.join(pages, page_data['parent'])) as f:
                     original = f.readlines()
+                # Check that the HTML has been changed
                 differ = HTMLDiff(original, mutant) 
-                if differ.quick_ratio() < 1.0 or differ.ratio() < 1.0:
+                if differ.quick_ratio() < 1.0 or differ.ratio() < 1.0: 
                     # Non-equivalent page
                     if not path.exists(path.join(output, "results")):
                         os.mkdir(path.join(output, "results"))

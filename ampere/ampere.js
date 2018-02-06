@@ -11,6 +11,7 @@ require('../common/common'); // Used to patch in some common extra functionality
 var fs = require('fs'), path = require("path"), jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 
+// Basic config
 var ampereName = "Ampere";
 var ampereVersion = "0.0.1";
 var ampereDirectory = __dirname;
@@ -20,6 +21,7 @@ if (!ampereDirectory.endsWith(ampereName.toLowerCase())) {
 
 console.log(ampereName + " " + ampereVersion);
 
+// Command line processing
 const argv = require('yargs')
              .command('pages <dir> <output>', 'Mutate all pages in a directory', (yargs) => {
                  yargs
@@ -44,6 +46,7 @@ const argv = require('yargs')
              })
              .argv;
 
+// Check each mutator in arguments can be found
 argv.mutators.forEach(function(element) {
     if (!checkMutatorExists(element)) {
         console.error(element + " mutator not found");
@@ -53,10 +56,12 @@ argv.mutators.forEach(function(element) {
 
 var generatedPagesDirectory = argv.output;
 
+// Construct list of pages to use
 var pagesList = [];
 if (argv.dir) {
     fs.readdirSync(argv.dir).forEach(page => {
         var pagePath = path.join(argv.dir, page);
+        // Check the page is a file and not a directory
         if (!fs.statSync(pagePath).isDirectory()) {
             pagesList.push(pagePath);
         }
@@ -67,7 +72,7 @@ if (argv.dir) {
 
 var totalMutants = 0;
 
-
+// Generate mutants for each page
 pagesList.forEach(pagePath => {
     console.log("Working with page " + pagePath);
 
@@ -78,9 +83,9 @@ pagesList.forEach(pagePath => {
     argv.mutators.forEach(function(mutationOperator) {
         var mutator = require('./mutators/' + mutationOperator);
         console.log("Performing mutations with " + mutator.name);
-        var mutants = mutatePage(page, mutator, (argv.single ? 1 : Infinity));
+        var mutants = mutatePage(page, mutator, (argv.single ? 1 : Infinity));  // Perform the mutation
 
-        makeDirectoryTree(generatedPagesDirectory);
+        makeDirectoryTree(generatedPagesDirectory);  // Make sure the directories are set up
         var originalPageName = pagePath.split(path.sep).pop().split(".")[0];
         fs.writeFileSync(path.join(generatedPagesDirectory, originalPageName + ".html"), page.serialize());
         for (var i = 0; i < mutants.length; i++) {
@@ -129,9 +134,7 @@ function mutatePage(page, mutator, limit) {
         console.log("Mutating eligible element " + i);
 
         // Clone the page
-        //var mutantTree = page.window.document.documentElement.cloneNode(true);
         var mutantPage = new JSDOM(page.serialize());
-        //mutantPage.window.document.replaceChild(mutantTree, mutantPage.window.document.documentElement);
 
         var match = mutator.eligibleElements(mutantPage)[i]; // The match needs to be regenerated since we've cloned the page
         var mutated = mutator.mutate(match);

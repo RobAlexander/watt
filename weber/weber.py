@@ -13,7 +13,7 @@ import jenkins as jenkins_lib
 import requests
 from requests.auth import HTTPBasicAuth
 
-
+# Constants
 JENKINS_JOB_NAME = "WATT"
 JENKINS_JOB_BUILD_KEY = "qwertyuiop"
 JENKINS_USERNAME = "admin"
@@ -30,6 +30,7 @@ jenkins = jenkins_lib.Jenkins(
     password=JENKINS_PASSWORD
 )
 
+
 # Template methods
 
 @app.template_filter('b64encode')
@@ -39,6 +40,7 @@ def b64encode(value):
 @app.template_filter('len')
 def len_filter(value):
     return len(value)
+
 
 # Helper methods
 
@@ -120,6 +122,7 @@ def get_data_mutator_directory():
 def get_weberload_file_path():
     return app.config["WEBER_CONFIG"]["root"] + "/.weberload"
 
+
 # General app management
 
 @app.before_request
@@ -132,6 +135,7 @@ def before_request():
             return redirect(url_for("config_load"))
     elif request.endpoint != "config_load" and Path(get_weberload_file_path()).is_file():
         return redirect(url_for("config_load"))
+
 
 # Job routes
 
@@ -150,6 +154,7 @@ def job_menu():
 def new():
     jenkins_info = jenkins.get_job_info(JENKINS_JOB_NAME)
     if request.method == "POST":
+        # Create new Job
         pages = request.form['pages']
         mutations = " ".join(request.form.getlist('mutations'))
         testers = " ".join(request.form.getlist('testers'))
@@ -160,6 +165,8 @@ def new():
                          )
         return redirect(url_for("new_wait", job=jenkins_info['nextBuildNumber']))
     else:
+        # Display new job page
+        # Load default parameters
         params = {}
         for param in jenkins_info['property'][0]['parameterDefinitions']:
             params[param['name']] = param['defaultParameterValue']['value']
@@ -167,6 +174,7 @@ def new():
                 params[param['name']] = None
         if "pagesDir" in app.config["WEBER_CONFIG"] and app.config["WEBER_CONFIG"]["pagesDir"] != "":
             params['Pages'] = app.config["WEBER_CONFIG"]["pagesDir"]
+        # Load mutator and tester lists
         all_mutations = [f.split(".")[0] for f in os.listdir(get_mutators_directory()) if os.path.isfile(os.path.join(get_mutators_directory(), f))]
         all_testers = [f.split(".")[0] for f in os.listdir(get_testers_directory()) if os.path.isfile(os.path.join(get_testers_directory(), f)) and f.split(".")[-1] == "sh"]
         return render_template("new.html",
@@ -178,6 +186,7 @@ def new():
                                ]
                               )
                               
+# Holding page for job until it has been properly assigned by Jenkins
 @app.route('/job/new/wait/<int:job>')
 def new_wait(job):
     try:
@@ -191,7 +200,6 @@ def new_wait(job):
                                 {"name": "Job %d" % job, "url": url_for("new_wait", job=job)}
                             ]
                            )
-
 
 @app.route('/job/<int:job>')
 def job_info(job):
@@ -323,9 +331,11 @@ def mutator_editor():
         tree = ET.parse(f)
     MODEL_NAMESPACE = '{mutators}'
     mutator_set = tree.getroot()
+    # Retrieve guidelines
     guidelines = []
     for guideline in mutator_set.findall(MODEL_NAMESPACE + 'guidelines'):
         guidelines.append(guideline.attrib)
+    # Retrieve mutators
     mutators = []
     for mutator in mutator_set.findall(MODEL_NAMESPACE + 'mutators'):
         mutator_data = mutator.attrib

@@ -1,8 +1,8 @@
 #!/bin/node
 
-/* Ampere (HTML Mutation script)
+/* Volt (HTML Tester script)
  *
- * Performs HTML mutations on .html files
+ * Runs HTML testers against .html files
  */
 
 "use strict";
@@ -10,6 +10,7 @@
 require('../common/common'); // Used to patch in some common extra functionality
 var fs = require('fs'), path = require("path"), child_process = require("child_process");
 
+// Basic config
 var voltName = "Volt";
 var voltVersion = "0.0.1";
 var voltDirectory = __dirname;
@@ -19,6 +20,7 @@ if (!voltDirectory.endsWith(voltName.toLowerCase())) {
 
 console.log(voltName + " " + voltVersion);
 
+// Argument parsing
 const argv = require('yargs')
             .command('$0 <pages> <results>', 'Run tests against a set of pages', (yargs) => {
                 yargs
@@ -36,12 +38,14 @@ const argv = require('yargs')
 var pages = argv.pages;
 var resultsDirectory = argv.results;
 
+// Find the pages directory
 if (!fs.statSync(pages).isDirectory()) {
     console.error("Pages directory " + pages + " not found");
     process.exit(2);
 } else {
     pages = path.resolve(pages);
 }
+// Check all specified testers can be found
 argv.testers.forEach(function(element) {
     if (!checkTesterExists(element)) {
         console.error(element + " tester not found");
@@ -54,29 +58,33 @@ const checksum = require("checksum");
 var pagesData = "", pagesFile = path.join(resultsDirectory, "pages.lst");
 fs.readdirSync(pages).forEach(page => {
     if (!fs.statSync(path.join(pages, page)).isDirectory()) {
-        pagesData += page + " " + checksum(fs.readFileSync(path.join(pages, page), "utf8")) + "\n";
+        pagesData += page + " " + checksum(fs.readFileSync(path.join(pages, page), "utf8")) + "\n";  // Store page nam and a checksum
     }
 });
 makeDirectoryTree(resultsDirectory);
 fs.writeFile(pagesFile, pagesData);
 
+// Start page server
 var serverPort = 8090;
 var server = child_process.exec("node " + path.join(voltDirectory, "server.js") + " " + pages + " " + serverPort);
 
-setTimeout(function() {
+setTimeout(function() { // Give the server a few seconds to start working
     // Run each tester
     argv.testers.forEach(tester => {
         var testerDirectory = path.join(resultsDirectory, tester);
         makeDirectoryTree(testerDirectory);
         console.log("Running tests with " + tester);
+        // Call the tester for each page
         pagesData.split("\n").forEach(pageData => {
             if (pageData !== "") {
+                console.log("Testing page " + pageData.split(" ")[0]);
                 child_process.execSync(path.join(voltDirectory, "testers", tester + ".sh") + " http://localhost:" + serverPort + "/" + pageData.split(" ")[0] + " " + path.join(testerDirectory, pageData.split(" ")[0] + ".json"));
             }
         });
         console.log("Completed tests with " + tester);
     });
 
+    // Shut child process down
     server.kill();
     process.exit(0);
 }, 5000);

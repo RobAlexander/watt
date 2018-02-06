@@ -1,3 +1,5 @@
+// Server for mutated HTML pages
+
 var pages = process.argv[2];
 var port = process.argv[3];
 

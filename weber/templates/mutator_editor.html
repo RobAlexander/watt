@@ -83,6 +83,7 @@
             content: "";
         }
 
+        /* Model specific */
         .card[data-object="example"] {
             width: 18rem;
         }
@@ -92,12 +93,14 @@
         }
     </style>
     <script type="application/javascript">
+        // Replace characters the HTML spec escapes
         function ltgtReplacement(text) {
             return text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
         }
         
         var editorCurrent = {}, editorNew = {}, deleterCurrent = undefined, editMade = false;
 
+        // Find an item based on a simplified xpath statement
         function findNoncontainmentItem(value) {
             // Very basic lookup only
             var processedValue = value, foundNode;
@@ -146,6 +149,7 @@
             return foundNode;
         }
 
+        // Generate simplified xpath for an object
         function findNoncontainmentValue(object) {
             var reversePath = [];
             var currentNode = object;
@@ -175,6 +179,7 @@
             }
         }
 
+        // Display noncontainment items and link to containment
         function displayNoncontainmentItem(span) {
             jqSpan = $(span);
             var object = findNoncontainmentItem(jqSpan.attr("data-value"));
@@ -185,6 +190,7 @@
             });
         }
 
+        // Add edit and delete buttons (must follow direct child path to prevent issues with multi-level containment)
         function addCardActions(card) {
             var jqCard = $(card);
             jqCard.find('> .card-header > [data-action="edit"], > .card-body > [data-action="edit"]').click(function() {
@@ -202,6 +208,7 @@
         }
 
         function openEditor(card, caller=undefined) {
+            // Find the right editor for the item
             var type;
             if (card == null) {
                 type = caller.getAttribute("data-object");
@@ -210,8 +217,10 @@
                 type = card.getAttribute("data-object");
             }
             var modal = $('.model-editor[data-editor="' + type + '"]');
+            // Fill in the fields with the right values
             modal.find('input, textarea, select').each(function() {
                 var fieldName = $(this).attr("name");
+                // If it's a select make sure the options are up-to-date
                 if (this.tagName.toUpperCase() == "SELECT") {
                     $(this).find("option").remove();
                     var objects = $(this).attr("data-objects").split(" ");
@@ -290,6 +299,7 @@
         function deleteDeleter() {
             var card = deleterCurrent;
             $(card).parent().get(0).removeChild(card);
+            // Does not handle removing something used as a noncontainment elsewhere at all
             deleterCurrent = undefined;
             editMade = true;
             $('.model-deleter').modal('hide');
@@ -310,10 +320,11 @@
                 xml.setAttributeNS("xmi", "xmi:version", "2.0");
             }
 
+            // For each data field for an entity
             data.find("> .card-header > [data-field], > .card-body > [data-field], > [data-field]").each(function() {
                 var field = $(this);
                 var fieldName = field.attr("data-field");
-                switch (field.attr("data-variety")) {
+                switch (field.attr("data-variety")) {  // Handle each type of field correctly
                     case "containment":
                         field.find("> .model-containment-holder > .card").each(function() {
                             xml.appendChild(buildXMLElement(this));
