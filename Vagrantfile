@@ -11,7 +11,7 @@ GIT_BRANCH = git_branch
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  config.vm.define GIT_BRANCH do |branch|
+  config.vm.define GIT_BRANCH, primary: true do |branch|
 
     branch.vm.provision :shell, :inline => "ln -sf /vagrant/vagrant-env.sh /etc/profile.d/vagrant.sh; echo source /etc/profile.d/vagrant.sh >> ~/.bashrc"
     branch.vm.provision :shell, :inline => "echo source /etc/profile.d/vagrant.sh >> ~/.bashrc", :privileged => "false"
@@ -26,6 +26,22 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     if File.directory?("../priy-report") then
       branch.vm.synced_folder "../priy-report", "/report"
     end
+
+    branch.vm.network "private_network", ip: "192.168.50.100"
+
+  end
+
+  config.vm.define GIT_BRANCH + "-achecker" do |achecker|
+
+    achecker.vm.provision :shell, :inline => "ln -sf /vagrant/vagrant-env.sh /etc/profile.d/vagrant.sh; echo source /etc/profile.d/vagrant.sh >> ~/.bashrc"
+    achecker.vm.provision :shell, :inline => "echo source /etc/profile.d/vagrant.sh >> ~/.bashrc", :privileged => "false"
+    achecker.vm.provision :shell, :path => "vagrant-setup-achecker.sh"
+
+    achecker.vm.box = 'ubuntu/trusty64'
+    achecker.vm.network "forwarded_port", guest: 9080, host: 9080, host_ip: "127.0.0.1"
+    achecker.vm.synced_folder ".", "/vagrant"
+
+    achecker.vm.network "private_network", ip: "192.168.50.101"
 
   end
 
