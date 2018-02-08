@@ -20,7 +20,7 @@ http.get("http://192.168.50.101:9080/AChecker/checkacc.php?uri=" + encodeURIComp
             var errorMsgFull = result.valueWithPath("errorMsg");
             var error = new xmldoc.XmlDocument(errorMsgFull);
             var resultObject = {
-                "message": errorMsgFull.substring(errorMsgFull.indexOf(">") + 1, errorMsgFull.lastIndexOf("<")),
+                "description": errorMsgFull.substring(errorMsgFull.indexOf(">") + 1, errorMsgFull.lastIndexOf("<")),
                 "id": result.valueWithPath("sequenceID"),
                 "nodes": [{
                     "html": result.valueWithPath("errorSourceCode"),

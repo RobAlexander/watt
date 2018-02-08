@@ -36,7 +36,7 @@ page.open(args[1], function(status) {
 
         results.forEach(function(result) {
             var resultObject = {
-                "message": result['rule'].heading,
+                "description": result['rule'].heading,
                 "id": result['rule'].name,
                 "nodes": [],
                 "help": "",

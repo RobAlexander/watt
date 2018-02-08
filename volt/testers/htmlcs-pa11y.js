@@ -19,7 +19,7 @@ test.run(process.argv[2], function (error, results) {
 
     results.forEach(result => {
         var resultObject = {
-            "message": result['message'],
+            "description": result['message'],
             "id": result['code'],
             "nodes": [{
                 "html": result['context'],

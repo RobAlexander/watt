@@ -16,7 +16,7 @@ child_process.exec(`java -jar ${vnu} --format json --exit-zero-always ${process.
     output['messages'].forEach(function(element) {
         if (element['type'] == "error") {
             data['violations'].push({
-                "message": element['message'],
+                "description": element['message'],
                 "id": "invalid",
                 "help": "",
                 "helpUrl": "",
