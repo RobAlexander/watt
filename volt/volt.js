@@ -78,7 +78,7 @@ setTimeout(function() { // Give the server a few seconds to start working
         pagesData.split("\n").forEach(pageData => {
             if (pageData !== "") {
                 console.log("Testing page " + pageData.split(" ")[0]);
-                child_process.execSync(path.join(voltDirectory, "testers", tester + ".sh") + " http://localhost:" + serverPort + "/" + pageData.split(" ")[0] + " " + path.join(testerDirectory, pageData.split(" ")[0] + ".json"));
+                child_process.execSync(path.join(voltDirectory, "testers", tester + ".sh") + " http://192.168.50.100:" + serverPort + "/" + pageData.split(" ")[0] + " " + path.join(testerDirectory, pageData.split(" ")[0] + ".json"));
             }
         });
         console.log("Completed tests with " + tester);
