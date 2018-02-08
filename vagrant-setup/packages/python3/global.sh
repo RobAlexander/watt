@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if command -v python3 2>&1 1>/dev/null
+if command -v pip3 2>&1 1>/dev/null
 then
     echo "Python3 already installed"
 else
