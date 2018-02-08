@@ -30,6 +30,9 @@ http.get("http://192.168.50.101:9080/AChecker/checkacc.php?uri=" + encodeURIComp
                 "helpUrl": error.attr.href,
                 "impact": result.valueWithPath("resultType")
             };
+            if (resultObject["id"] == null) {
+                resultObject["id"] = "Error"
+            }
             switch (result.valueWithPath("resultType")) {
                 case "Error":
                     json["violations"].push(resultObject);
