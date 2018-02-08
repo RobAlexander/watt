@@ -14,8 +14,13 @@ then
     echo "AChecker already installed"
 else
     mkdir -p $achecker_var
-    wget https://sourceforge.net/projects/achecker/files/latest/download -O $achecker_var/achecker.tar.gz
-    tar -xvzf $achecker_var/achecker.tar.gz -C /var/www
+    wget https://github.com/inclusive-design/AChecker/archive/master.zip -O $achecker_var/achecker.zip
+    unzip -o $achecker_var/achecker.zip -d $achecker_var
+    mkdir -p $achecker_root
+    mv -f $achecker_var/AChecker-master/* $achecker_root
+
+    currentpath="$( cd "$(dirname "$0")" ; pwd -P )"
+    cp $currentpath/config.inc.php $achecker_root/include/config.inc.php
 
     mkdir -p $achecker_temp
     chmod a+rwx $achecker_temp
