@@ -1,0 +1,6 @@
+\begin{tabular}{ c | c }
+    \textbf{Page Name} & \textbf{Description}\\
+    {% for page in pages %}\hline
+    {{ page }} & {{ page_descriptions[page] | tex_escape }}\\
+    {% endfor %}
+\end{tabular}

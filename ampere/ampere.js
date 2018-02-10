@@ -24,10 +24,11 @@ console.log(ampereName + " " + ampereVersion);
 
 // Command line processing
 const argv = require('yargs')
-             .command('pages <dir> <output>', 'Mutate all pages in a directory', (yargs) => {
+             .command('pages <dir> <output> <descriptions>', 'Mutate all pages in a directory', (yargs) => {
                  yargs
                  .positional('dir', {describe: "The directory containing pages to mutate"})
                  .positional('output', {describe: "The directory to save mutants to"})
+                 .positional('descriptions', {describe: "The file to save page descriptions to"})
              })
              .command('$0 <page> <output>', 'Mutate a page', (yargs) => {
                  yargs
@@ -60,8 +61,10 @@ var generatedPagesDirectory = argv.output;
 // Construct list of pages to use
 var pagesList = [];
 if (argv.dir) {
+    var pagesDesc = {};
     fs.readdirSync(path.join(argv.dir, "desc")).forEach(page => {
         var pageName = page.split(".").slice(0, -1).join(".");  // General page name
+        pagesDesc[pageName] = fs.readFileSync(path.join(argv.dir, "desc", pageName + ".desc"), "utf8");
         for (var i = 0; i < pageTypes.length; i++) {
             var pagePath = path.join(argv.dir, pageTypes[i], pageName + "." + pageTypes[i]);
             // Check the page exists and is a file and not a directory
@@ -72,6 +75,9 @@ if (argv.dir) {
             }
         }
     });
+    if (argv.descriptions) {
+        fs.writeFileSync(argv.descriptions, JSON.stringify(pagesDesc));
+    }
 } else {
     pagesList = [argv.page]
 }

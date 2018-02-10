@@ -10,6 +10,7 @@ import json
 from page import Page, Evaluation
 from common import nan
 from htmldiff import HTMLDiff
+from page_set import pages_table
 
 pages = {}
 
@@ -129,4 +130,5 @@ if __name__ == '__main__':
     load_reports(argv.reports)
     report = build_report(path.join(argv.output, "summary.json"))
     stats = build_stats(report, path.join(argv.output, "stats.json"))
+    pages_table(path.join(argv.output, "pages.json"), path.join(argv.output, "pages.tex"))
     equivalence = check_equivalence(argv.pages, report, argv.output)
