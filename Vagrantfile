@@ -38,7 +38,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     achecker.vm.provision :shell, :path => "vagrant-setup-achecker.sh"
 
     achecker.vm.box = 'ubuntu/trusty64'
-    achecker.vm.network "forwarded_port", guest: 9080, host: 9080, host_ip: "127.0.0.1"
+#    achecker.vm.network "forwarded_port", guest: 9080, host: 9080, host_ip: "127.0.0.1"
     achecker.vm.synced_folder ".", "/vagrant"
 
     achecker.vm.network "private_network", ip: "192.168.50.101"
