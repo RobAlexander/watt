@@ -64,7 +64,7 @@ def build_stats(report_object, output):
             mutants += 1
             for tester, failure in page['failures'].items():
                 if tester not in testers.keys():
-                    testers[tester] = {"live": 0, "dead": 0, mutation_score": nan}
+                    testers[tester] = {"live": 0, "dead": 0, "mutation_score": nan}
                 if (failure is 0 and report_object[page['parent']]['failures'][tester] is 0 and tester != 'vnu') or (tester == "vnu" and failure is not 0):
                     # VNU is a special case since it should always return 0, otherwise it isn't valid HTML
                     testers[tester]['live'] += 1
