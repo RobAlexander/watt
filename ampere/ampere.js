@@ -76,6 +76,7 @@ if (argv.dir) {
         }
     });
     if (argv.descriptions) {
+        makeDirectoryTree(argv.descriptions.split(path.sep).slice(0, -1).join(path.sep));
         fs.writeFileSync(argv.descriptions, JSON.stringify(pagesDesc));
     }
 } else {
