@@ -8,7 +8,7 @@
     </thead>
     <tbody>
         {% for tester, data in job['testers'].items() %}
-            <tr data-success="{{ data['mutation_score'] == 0.0 }}">
+            <tr data-success="{{ data['mutation_score'] == 1.0 }}">
                 <td><a href="{{ url_for('job_tester_info', job=job['number'], tester=tester) }}">{{ tester }}</a></td>
                 <td>{{ data['mutation_score'] }}</td>
                 <td>{{ data['live'] }}</td>
