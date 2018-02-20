@@ -13,13 +13,16 @@ from htmldiff import HTMLDiff
 from page_set import pages_table
 
 pages = {}
+pages_checksum = {}
 
 def build_pages_list(directory):
     pages_path = path.join(directory, "pages.lst")
     with open(pages_path, 'r') as f:
         for page in f.readlines():
-            page_name = page.split(" ")[0]
+            page_parts = page.split(" ")
+            page_name = page_parts[0]
             pages[page_name] = Page(page_name)
+            pages_checksum[page_name] = page_parts[1] if len(page_parts) > 1 else None
 
 def load_reports(directory):
     testers = os.listdir(directory)
@@ -117,7 +120,22 @@ def check_equivalence(pages, report_object, output):
         with open(path.join(output, "equivalence.json"), 'w') as f:
             json.dump(equivalences, f)
     return equivalences
-            
+
+def check_duplicates(output):
+    result = {}
+    for page_name, checksum in pages_checksum.items():
+        for other_page_name, other_checksum in pages_checksum.items():
+            # Make sure it's not the same page and we haven't checked the other one yet
+            if page_name != other_page_name and other_page_name not in result.keys():
+                # Are the checksums the same
+                if checksum == other_checksum:
+                    if page_name not in result.keys():
+                        result[page_name] = []
+                    result[page_name].append(other_page_name)
+    if output is not None:
+        with open(output, 'w') as f:
+            json.dump(result, f)
+    return result
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description="Analyses results of mutation tests")
@@ -132,3 +150,4 @@ if __name__ == '__main__':
     stats = build_stats(report, path.join(argv.output, "stats.json"))
     pages_table(path.join(argv.output, "pages.json"), path.join(argv.output, "pages.tex"))
     equivalence = check_equivalence(argv.pages, report, argv.output)
+    duplicates = check_duplicates(path.join(argv.output, "duplicates.json"))
