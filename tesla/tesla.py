@@ -58,21 +58,22 @@ def build_report(output):
             json.dump(pages_output, f)
     return pages_output
 
-def build_stats(report_object, output):
+def build_stats(report_object, equivalents, dupes, output):
     testers = {}
     mutants = 0
 
-    for _, page in report_object.items():
-        if page['parent'] is not None:
-            mutants += 1
-            for tester, failure in page['failures'].items():
-                if tester not in testers.keys():
-                    testers[tester] = {"live": 0, "dead": 0, "mutation_score": nan}
-                if (failure is 0 and report_object[page['parent']]['failures'][tester] is 0 and tester != 'vnu') or (tester == "vnu" and failure is not 0):
-                    # VNU is a special case since it should always return 0, otherwise it isn't valid HTML
-                    testers[tester]['live'] += 1
-                else:
-                    testers[tester]['dead'] += 1
+    for page_name, page in report_object.items():
+        if page_name not in dupes and not equivalents[page_name]:  # Don't do anything with duplicates or equivalents
+            if page['parent'] is not None:
+                mutants += 1
+                for tester, failure in page['failures'].items():
+                    if tester not in testers.keys():
+                        testers[tester] = {"live": 0, "dead": 0, "mutation_score": nan}
+                    if (failure is 0 and report_object[page['parent']]['failures'][tester] is 0 and tester != 'vnu') or (tester == "vnu" and failure is not 0):
+                        # VNU is a special case since it should always return 0, otherwise it isn't valid HTML
+                        testers[tester]['live'] += 1
+                    else:
+                        testers[tester]['dead'] += 1
     for tester in testers.keys():
         testers[tester]['mutation_score'] = testers[tester]['dead'] / float(mutants)
 
@@ -123,6 +124,7 @@ def check_equivalence(pages, report_object, output):
 
 def check_duplicates(output):
     result = {}
+    treat_as_dupes = []
     for page_name, checksum in pages_checksum.items():
         for other_page_name, other_checksum in pages_checksum.items():
             # Make sure it's not the same page and we haven't checked the other one yet
@@ -132,10 +134,11 @@ def check_duplicates(output):
                     if page_name not in result.keys():
                         result[page_name] = []
                     result[page_name].append(other_page_name)
+                    treat_as_dupes.append(other_page_name)
     if output is not None:
         with open(output, 'w') as f:
             json.dump(result, f)
-    return result
+    return result, treat_as_dupes
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description="Analyses results of mutation tests")
@@ -147,7 +150,9 @@ if __name__ == '__main__':
     build_pages_list(argv.reports)
     load_reports(argv.reports)
     report = build_report(path.join(argv.output, "summary.json"))
-    stats = build_stats(report, path.join(argv.output, "stats.json"))
-    pages_table(path.join(argv.output, "pages.json"), path.join(argv.output, "pages.tex"))
+
     equivalence = check_equivalence(argv.pages, report, argv.output)
-    duplicates = check_duplicates(path.join(argv.output, "duplicates.json"))
+    duplicates, treat_as_dupes = check_duplicates(path.join(argv.output, "duplicates.json"))
+
+    stats = build_stats(report, equivalence, treat_as_dupes, path.join(argv.output, "stats.json"))
+    pages_table(path.join(argv.output, "pages.json"), path.join(argv.output, "pages.tex"))
