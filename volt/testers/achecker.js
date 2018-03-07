@@ -4,6 +4,10 @@ const fs = require('fs'), http = require("http"), xmldoc = require("xmldoc");
 
 // Handle command line arguments
 var url = process.argv[2], output = process.argv[3];
+var warnAsErr = false;
+if (process.argv.length >= 5 && process.argv[4] == "-w") {
+    warnAsErr = true;
+}
 
 var acheckerId = fs.readFileSync(process.env["WATT_ROOT"] + "/acheckerid", {encoding:"utf-8"}).split("\n")[0];
 
@@ -38,7 +42,11 @@ http.get("http://192.168.50.101:9080/AChecker/checkacc.php?uri=" + encodeURIComp
                     json["violations"].push(resultObject);
                     break;
                 default:
-                    json["incomplete"].push(resultObject);
+                    if (warnAsErr) {
+                        json["violations"].push(resultObject);
+                    } else {
+                        json["incomplete"].push(resultObject);
+                    }
             }
         });
 
