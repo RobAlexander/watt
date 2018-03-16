@@ -9,3 +9,8 @@ rule Mutators2Tex transform mutatorSet: MutatorSet {
     template: "Tex-Mutations.egl"
     target: getWorkingDirectory() + "/data/mutators.tex"
 }
+
+rule Mutators2TexLong transform mutatorSet: MutatorSet {
+    template: "Tex-MutationsLong.egl"
+    target: getWorkingDirectory() + "/data/mutators-long.tex"
+}

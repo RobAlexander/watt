@@ -1,0 +1,4 @@
+[% for (mutator in mutatorSet.mutators) { %]
+\textbf{[%= mutator.name %]} - [%= mutator.longDesc %]
+
+[% } %]
