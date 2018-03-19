@@ -38,7 +38,7 @@
                 <div class="card-header" role="tab" id="heading-{{ group }}">
                     <h2 class="mb-0">
                         <a data-toggle="collapse" href="#collapse-{{ group }}" aria-controls="collapse-{{ group }}">
-                            {{ group }} <span class="badge badge-secondary">{{ report[group]|len }}</span>
+                            {% if group != "incomplete" %}{{ group }}{% else %}warning{% endif %} <span class="badge badge-secondary">{{ report[group]|len }}</span>
                         </a>
                     </h2>
                 </div>
