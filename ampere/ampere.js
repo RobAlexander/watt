@@ -139,11 +139,14 @@ function mutatePage(page, mutator, limit) {
         limit = Infinity;
     }
 
+    var startTime = Date.now();
+
     var matches = mutator.eligibleElements(page).length;
     console.log("Found " + matches + " possible mutation" + ((matches != 1) ? "s" : ""));
 
+    var toMutate = Math.min(matches, limit);
     var mutants = [];
-    for (var i = 0; i < Math.min(matches, limit); i++) {
+    for (var i = 0; i < toMutate; i++) {
         console.log("Mutating eligible element " + i);
 
         // Clone the page
@@ -163,6 +166,8 @@ function mutatePage(page, mutator, limit) {
         // Store cloned page
         mutants.push(mutantPage);
     }
+
+    console.log("Mutated " + toMutate + " pages in " + (Date.now() - startTime) + " milliseconds");
 
     return mutants;
 }

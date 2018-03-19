@@ -74,13 +74,20 @@ setTimeout(function() { // Give the server a few seconds to start working
         var testerDirectory = path.join(resultsDirectory, tester);
         makeDirectoryTree(testerDirectory);
         console.log("Running tests with " + tester);
+        // Timing data array
+        var timingData = {};
         // Call the tester for each page
         pagesData.split("\n").forEach(pageData => {
             if (pageData !== "") {
-                console.log("Testing page " + pageData.split(" ")[0]);
-                child_process.execSync(path.join(voltDirectory, "testers", tester + ".sh") + " http://192.168.50.100:" + serverPort + "/" + pageData.split(" ")[0] + " " + path.join(testerDirectory, pageData.split(" ")[0] + ".json"));
+                var pageName = pageData.split(" ")[0];
+                console.log("Testing page " + pageName);
+
+                var startTime = Date.now();
+                child_process.execSync(path.join(voltDirectory, "testers", tester + ".sh") + " http://192.168.50.100:" + serverPort + "/" + pageName + " " + path.join(testerDirectory, pageData.split(" ")[0] + ".json"));
+                timingData[pageName] = Date.now() - startTime;
             }
         });
+        saveTimingData(timingData, tester, resultsDirectory);
         console.log("Completed tests with " + tester);
     });
 
@@ -108,4 +115,9 @@ function makeDirectoryTree(directoryPath) {
             fs.mkdirSync(curPath);
         }
     }
+}
+
+function saveTimingData(timingData, testerName, resultsPath) {
+    var finalPath = path.join(resultsPath, testerName + ".json");
+    fs.writeFileSync(finalPath, JSON.stringify(timingData));
 }
