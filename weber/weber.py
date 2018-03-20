@@ -20,6 +20,7 @@ JENKINS_USERNAME = "admin"
 JENKINS_PASSWORD = JENKINS_USERNAME
 JENKINS_REQUESTS_AUTH = HTTPBasicAuth('admin', 'admin')
 JENKINS_CONFIG_JOB_NAME="mutators"
+JENKINS_EXPORT_JOB_NAME="export"
 
 CONFIG_REQUIRED_KEYS = ["mutatorSource", "root", "dataRoot", "pagesDir"]
 
@@ -234,6 +235,15 @@ def job_stats(job):
 @app.route('/job/<int:job>/zip')
 def job_zip(job):
     return Response(get_jenkins_artifact_all(JENKINS_JOB_NAME, job).content, mimetype="application/zip")
+
+@app.route('/job/<int:job>/export')
+def job_export(job):
+    jenkins.build_job(
+        JENKINS_EXPORT_JOB_NAME,
+        {'Build':job},
+        JENKINS_JOB_BUILD_KEY
+    )
+    return redirect(url_for("job_info", job=job))
 
 @app.route('/job/<int:job>/page')
 def job_page(job):

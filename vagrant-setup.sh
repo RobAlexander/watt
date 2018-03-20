@@ -33,9 +33,11 @@ $PACKAGEINSTALLER forever jenkins python3
 echo "===Customise Jenkins==="
 mkdir -p $JENKINS_HOME/users/admin
 mkdir -p $JENKINS_HOME/jobs/WATT
+mkdir -p $JENKINS_HOME/jobs/export
 ln -sf $WATT_ROOT/weber/jenkins-config.xml $JENKINS_HOME/config.xml
 ln -sf $WATT_ROOT/weber/jenkins-user.xml $JENKINS_HOME/users/admin/config.xml
 ln -sf $WATT_ROOT/weber/jenkins-job.xml $JENKINS_HOME/jobs/WATT/config.xml
+ln -sf $WATT_ROOT/weber/jenkins-export.xml $JENKINS_HOME/jobs/export/config.xml
 
 # Ohm (Modelling)
 echo "==Ohm=="

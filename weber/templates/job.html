@@ -55,6 +55,7 @@
                 View Console Output
             </button>
             <a class="btn btn-secondary" href="{{ url_for('job_zip', job=job['number']) }}">Export as ZIP</a>
+            <a class="btn btn-secondary" href="{{ url_for('job_export', job=job['number']) }}">Export to Report</a>
         </p>
         <div class="collapse" id="console">
             <div class="card card-body"><pre>
