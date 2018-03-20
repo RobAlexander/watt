@@ -8,7 +8,7 @@ from pathlib import Path
 import argparse
 import xml.etree.ElementTree as ET
 
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, Response
 import jenkins as jenkins_lib
 import requests
 from requests.auth import HTTPBasicAuth
@@ -57,15 +57,24 @@ def get_job_data(job, number):
         "status": status
     }
 
-def get_jenkins_artifact_url(job, number, artifact):
+def make_jenkins_request(url):
+    return requests.get(url, auth=JENKINS_REQUESTS_AUTH)
+
+def make_jenkins_url(job, number, path):
     jenkins_data = jenkins.get_build_info(job, number)
-    return jenkins_data['url'] + "artifact/run/" + artifact
+    return jenkins_data['url'] + path
+
+def get_jenkins_artifact_all_url(job, number):
+    return make_jenkins_url(job, number, "artifact/*zip*/archive.zip")
+
+def get_jenkins_artifact_all(job, number):
+    return make_jenkins_request(get_jenkins_artifact_all_url(job, number))
+
+def get_jenkins_artifact_url(job, number, artifact):
+    return make_jenkins_url(job, number, "artifact/run/" + artifact)
 
 def get_jenkins_artifact(job, number, artifact):
-    return requests.get(
-        get_jenkins_artifact_url(job, number, artifact),
-        auth=JENKINS_REQUESTS_AUTH
-    )
+    return make_jenkins_request(get_jenkins_artifact_url(job, number, artifact))
 
 def get_job_stats(job, number):
     return get_jenkins_artifact(job, number, "stats.json").json()
@@ -221,6 +230,10 @@ def job_summary(job):
 @app.route('/job/<int:job>/stats')
 def job_stats(job):
     return json.dumps(get_job_stats(JENKINS_JOB_NAME, job))
+
+@app.route('/job/<int:job>/zip')
+def job_zip(job):
+    return Response(get_jenkins_artifact_all(JENKINS_JOB_NAME, job).content, mimetype="application/zip")
 
 @app.route('/job/<int:job>/page')
 def job_page(job):
