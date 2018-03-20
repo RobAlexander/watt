@@ -12,6 +12,7 @@ from page import Page, Evaluation
 from common import nan
 from htmldiff import HTMLDiff
 from page_set import pages_table
+import speed
 
 pages = {}
 pages_checksum = {}
@@ -193,3 +194,7 @@ if __name__ == '__main__':
 
     stats = build_stats(report, equivalence, treat_as_dupes, path.join(argv.output, "stats.json"))
     pages_table(path.join(argv.output, "pages.json"), path.join(argv.output, "pages.tex"))
+
+    page_speeds, tester_speeds = speed.average(speed.load_speeds(argv.reports, sorted(stats['testers'].keys())))
+    speed.make_page_speed_table(page_speeds, path.join(argv.output, "page_speed"))
+    speed.make_tester_speed_table(tester_speeds, path.join(argv.output, "tester_speed"))

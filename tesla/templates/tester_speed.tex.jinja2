@@ -1,0 +1,6 @@
+\begin{tabular}{ c | c }
+    \textbf{Tester} & \textbf{Average Time (ms)}\\
+    {% for tester in testers %}\hline
+    {{ tester }} & {{ speeds[tester] | tex_escape }}\\
+    {% endfor %}
+\end{tabular}
