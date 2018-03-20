@@ -6,6 +6,7 @@ import os.path as path
 import os
 import stat
 import json
+import csv
 
 from page import Page, Evaluation
 from common import nan
@@ -40,6 +41,41 @@ def load_reports(directory):
                             inconclusive=len(json_data['incomplete']),
                             skipped=len(json_data['inapplicable'])
                         ))
+
+def build_results_csv(directory, output):
+    testers = pages[list(pages.keys())[0]].evaluations().keys()
+    with open(path.join(output, 'all.csv'), 'w', newline='') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(['.PageName'] + [tester + ".Error" for tester in testers] + [tester  + ".Warning" for tester in testers])
+        for page_name, page in pages.items():
+            writer.writerow([page_name] + [page.evaluations()[tester].failure() for tester in testers] + [page.evaluations()[tester].inconclusive() for tester in testers])
+    for tester in testers:
+        tester_errors = {}
+        tester_warning = {}
+        for page_name, page in pages.items():
+            with open(path.join(directory, tester, page_name + ".json")) as f:
+                json_data = json.load(f)
+                for failure in json_data['violations']:
+                    if failure['description'] not in tester_errors.keys():
+                        tester_errors[failure['description']] = {page_name: 1}
+                    elif page_name not in tester_errors[failure['description']].keys():
+                        tester_errors[failure['description']][page_name] = 1
+                    else:
+                        tester_errors[failure['description']][page_name] += 1
+                for warning in json_data['incomplete']:
+                    if warning['description'] not in tester_warning.keys():
+                        tester_warning[warning['description']] = {page_name: 1}
+                    elif page_name not in tester_warning[warning['description']].keys():
+                        tester_warning[warning['description']][page_name] = 1
+                    else:
+                        tester_warning[warning['description']][page_name] += 1
+        error_list = tester_errors.keys()
+        warning_list = tester_warning.keys()
+        with open(path.join(output, tester + ".csv"), 'w', newline='') as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(['.PageName'] + [error + "(Error)" for error in error_list] + [warning + "(Warning)" for warning in warning_list])
+            for page_name, page in pages.items():
+                writer.writerow([page_name] + [(tester_errors[error][page_name] if page_name in tester_errors[error].keys() else 0) for error in error_list] + [(tester_warning[warning][page_name] if page_name in tester_warning[warning].keys() else 0) for warning in warning_list])
 
 def build_report(output):
     pages_output = {}
@@ -150,6 +186,7 @@ if __name__ == '__main__':
     build_pages_list(argv.reports)
     load_reports(argv.reports)
     report = build_report(path.join(argv.output, "summary.json"))
+    build_results_csv(argv.reports, argv.output)
 
     equivalence = check_equivalence(argv.pages, report, argv.output)
     duplicates, treat_as_dupes = check_duplicates(path.join(argv.output, "duplicates.json"))
