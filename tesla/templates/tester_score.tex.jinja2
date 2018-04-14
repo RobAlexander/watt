@@ -1,0 +1,6 @@
+\begin{tabular}{ c | c }
+    \textbf{Tester} & \textbf{Mutation Score}\\
+    {% for tester in testers %}\hline
+    {{ tester }} & {{ stats[tester]["mutation_score"] | round_if_float(2) | tex_escape }}\\
+    {% endfor %}
+\end{tabular}

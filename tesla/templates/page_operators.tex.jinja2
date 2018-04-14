@@ -1,0 +1,6 @@
+\begin{tabular}{ c | c }
+    \textbf{Page} & \textbf{Operators with counts}\\
+    {% for page in page_names %}\hline
+    {{ page }} & {% for operator in pages[page].keys() %}{{ operator | text_escape }}: {{ pages[page][operator] | tex_escape }}{% endfor %}\\
+    {% endfor %}
+\end{tabular}

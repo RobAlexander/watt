@@ -1,0 +1,6 @@
+\begin{tabular}{ c {% for tester in testers %}| c {% endfor %}| c }
+    \textbf{Operator} {% for tester in testers %}& \textbf{ {{ tester }}}{% endfor %}& \textit{\textbf{Average}}\\
+    {% for operator in operators %}\hline
+    {{ operator }} {% for tester in testers %}& {{ scores[operator][tester] | round_if_float(2) | tex_escape }}{% endfor %}& \textit{ {{ averages[operator] | round_if_float(2) | tex_escape }}}\\
+    {% endfor %}
+\end{tabular}

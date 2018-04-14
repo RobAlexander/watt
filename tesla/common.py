@@ -7,8 +7,14 @@ nan = float('nan')
 def jinja2_tex_escape(content):
     return str(content).replace("%", "\\%")
 
+def jinja2_round_if_float(content, decimals):
+    if isinstance(content, float):
+        return round(content, decimals)
+    return content
+
 jinja2_custom_filters = {
-    'tex_escape': jinja2_tex_escape
+    'tex_escape': jinja2_tex_escape,
+    'round_if_float': jinja2_round_if_float
 }
 
 def make_resource(template, file_path, **args):

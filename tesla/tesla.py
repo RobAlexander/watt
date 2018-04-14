@@ -9,7 +9,7 @@ import json
 import csv
 
 from page import Page, Evaluation
-from common import nan
+from common import nan, make_resource
 from htmldiff import HTMLDiff
 from page_set import pages_table
 import speed
@@ -105,14 +105,23 @@ def build_stats(report_object, equivalents, dupes, output):
                 mutants += 1
                 for tester, failure in page['failures'].items():
                     if tester not in testers.keys():
-                        testers[tester] = {"live": 0, "dead": 0, "mutation_score": nan}
+                        testers[tester] = {"live": 0, "dead": 0, "mutation_score": nan, "operators": {}}
+                    for mutation in page["mutations"]:
+                        if mutation not in testers[tester]["operators"].keys():
+                            testers[tester]["operators"][mutation] = {"live": 0, "dead": 0, "mutation_score": nan}
                     if (failure is 0 and report_object[page['parent']]['failures'][tester] is 0 and tester != 'vnu') or (tester == "vnu" and failure is not 0):
                         # VNU is a special case since it should always return 0, otherwise it isn't valid HTML
                         testers[tester]['live'] += 1
+                        for mutation in page["mutations"]:
+                            testers[tester]["operators"][mutation]["live"] += 1
                     else:
                         testers[tester]['dead'] += 1
+                        for mutation in page["mutations"]:
+                            testers[tester]["operators"][mutation]["dead"] += 1
     for tester in testers.keys():
         testers[tester]['mutation_score'] = testers[tester]['dead'] / float(mutants)
+        for mutation in testers[tester]["operators"].keys():
+            testers[tester]["operators"]["mutation_score"] = testers[tester]["operators"]["dead"] / (testers[tester]["operators"]["dead"] + testers[tester]["operators"]["live"])
 
 
     stats = {"testers": testers, "mutant_pages": mutants}
@@ -120,6 +129,43 @@ def build_stats(report_object, equivalents, dupes, output):
         with open(output, 'w') as f:
             json.dump(stats, f)
     return stats
+
+def stats_mutation_table(stats, table_tex_file="tester_score.tex"):
+    make_resource("tester_score.tex.jinja2", table_tex_file,
+                  testers=sorted(stats["testers"].keys()), stats=stats["testers"]
+                 )
+
+def stats_operator_table(stats, table_tex_file="operator_score.tex"):
+    scores = {}
+    averages = {}
+    for tester, tester_stats in stats["testers"].items():
+        for operator, operator_stats in tester_stats["operators"].items():
+            if operator not in scores.keys():
+                scores[operator] = {}
+            scores[operator][tester] = operator_stats["mutation_score"]
+    for operator, operator_scores in scores.items():
+        total = 0
+        for tester, score in operator_scores.items():
+            total += score
+        averages[operator] = total / len(operator_scores)
+    make_resource("operator_score.tex.jinja2", table_tex_file,
+                  operators=sorted(scores.keys()), tools=sorted(stats["testers"].keys()),
+                  scores=scores, averages=averages
+                 )
+
+def page_mutations_table(report_object, table_tex_file="page_operators.tex"):
+    pages = {}
+    for _, page in report_object.items():
+        initial_page = page["parent"]
+        if initial_page not in pages.keys():
+            pages[initial_page] = {}
+        for operator in page["mutations"]:
+            if operator not in pages[initial_page].keys():
+                page[initial_page][operator] = 0
+            pages[initial_page][operator] += 1
+    make_resource("page_operators.tex.jinja2", table_tex_file,
+                  page_names=sorted(pages.keys()), pages=pages
+                 )
 
 def check_equivalence(pages, report_object, output):
     equivalences = {}
@@ -194,6 +240,9 @@ if __name__ == '__main__':
 
     stats = build_stats(report, equivalence, treat_as_dupes, path.join(argv.output, "stats.json"))
     pages_table(path.join(argv.output, "pages.json"), path.join(argv.output, "pages.tex"))
+    stats_mutation_table(stats, path.join(argv.output, "tester_score.tex"))
+    stats_operator_table(stats, path.join(argv.output, "operator_score.tex"))
+    page_mutations_table(report, path.join(argv.output, "page_operators.tex"))
 
     page_speeds, tester_speeds = speed.average(speed.load_speeds(argv.reports, sorted(stats['testers'].keys())))
     speed.make_page_speed_table(page_speeds, path.join(argv.output, "page_speed"))
