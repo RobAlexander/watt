@@ -47,7 +47,7 @@ def load_reports(directory, page_ignores=None, tester_ignores=None):
                             ignores.extend(page_ignores[parent_page_name][tester])
                         violation_count = 0
                         for violation in json_data['violations']:
-                            if violation not in ignores:
+                            if violation['description'] not in ignores:
                                 violation_count += 1
                         pages[page_name].add_evaluation(Evaluation(
                             tester,
@@ -285,14 +285,14 @@ if __name__ == '__main__':
     load_reports(argv.reports, page_ignores=page_ignores)
     page_ignore_report = build_report(path.join(argv.output, "pageignore_summary.json"))
     page_ignore_stats = build_stats(page_ignore_report, equivalence, treat_as_dupes, path.join(argv.output, "pageignore_stats.json"))
-    stats_mutation_table(page_ignore_stats, path.join(argv.output, "tester_score.tex"))
+    stats_mutation_table(page_ignore_stats, path.join(argv.output, "pageignore_tester_score.tex"))
     # Tool ignores
     load_reports(argv.reports, tester_ignores=tester_ignores)
     tester_ignore_report = build_report(path.join(argv.output, "testerignore_summary.json"))
     tester_ignore_stats = build_stats(tester_ignore_report, equivalence, treat_as_dupes, path.join(argv.output, "testerignore_stats.json"))
-    stats_mutation_table(tester_ignore_stats, path.join(argv.output, "tester_score.tex"))
+    stats_mutation_table(tester_ignore_stats, path.join(argv.output, "testerignore_tester_score.tex"))
     # Both ignores
     load_reports(argv.reports, page_ignores=page_ignores, tester_ignores=tester_ignores)
     ignore_report = build_report(path.join(argv.output, "ignore_summary.json"))
     ignore_stats = build_stats(ignore_report, equivalence, treat_as_dupes, path.join(argv.output, "ignore_stats.json"))
-    stats_mutation_table(ignore_stats, path.join(argv.output, "tester_score.tex"))
+    stats_mutation_table(ignore_stats, path.join(argv.output, "ignore_tester_score.tex"))
