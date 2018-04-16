@@ -26,7 +26,11 @@ def build_pages_list(directory):
             pages[page_name] = Page(page_name)
             pages_checksum[page_name] = page_parts[1] if len(page_parts) > 1 else None
 
-def load_reports(directory):
+def load_reports(directory, page_ignores=None, tester_ignores=None):
+    if page_ignores is None:
+        page_ignores = {}
+    if tester_ignores is None:
+        tester_ignores = {}
     testers = os.listdir(directory)
     for tester in testers:  # For each tester
         if tester[0] != '.' and stat.S_ISDIR(os.stat(path.join(directory, tester)).st_mode):
@@ -35,13 +39,39 @@ def load_reports(directory):
                     json_data = json.load(f)
                     page_name = ".".join(result.split(".")[:-1])
                     if page_name in pages.keys():
+                        ignores = []
+                        if tester in tester_ignores.keys():
+                            ignores = tester_ignores[tester]
+                        parent_page_name = page_name[0]
+                        if parent_page_name in page_ignores.keys() and tester in page_ignores[parent_page_name].keys():
+                            ignores.extend(page_ignores[parent_page_name][tester])
+                        violation_count = 0
+                        for violation in json_data['violations']:
+                            if violation not in ignores:
+                                violation_count += 1
                         pages[page_name].add_evaluation(Evaluation(
                             tester,
-                            failure=len(json_data['violations']),
+                            failure=violation_count,
                             success=len(json_data['passes']),
                             inconclusive=len(json_data['incomplete']),
                             skipped=len(json_data['inapplicable'])
                         ))
+
+def load_ignores(pages_file, testers):
+    # Pages Ignores
+    with open(pages_file) as f:
+        page_ignores = json.load(f)
+    # Tester Ignores
+    tester_ignores = {}
+    tester_ignores_dir = os.path.join(os.path.dirname(__file__), "tester_ignores")
+    for tester in testers:
+        tester_ignores[tester] = []
+        tester_ignore_path = os.path.join(tester_ignores_dir, tester + ".txt")
+        if os.path.exists(tester_ignore_path):
+            with open(tester_ignore_path) as f:
+                tester_ignores[tester] = f.readlines()
+    return page_ignores, tester_ignores
+
 
 def build_results_csv(directory, output):
     testers = pages[list(pages.keys())[0]].evaluations().keys()
@@ -109,8 +139,8 @@ def build_stats(report_object, equivalents, dupes, output):
                     for mutation in page["mutations"]:
                         if mutation not in testers[tester]["operators"].keys():
                             testers[tester]["operators"][mutation] = {"live": 0, "dead": 0, "mutation_score": nan}
-                    if (failure is 0 and report_object[page['parent']]['failures'][tester] is 0 and tester != 'vnu') or (tester == "vnu" and failure is not 0):
-                        # VNU is a special case since it should always return 0, otherwise it isn't valid HTML
+                    # VNU is a special case since it should always return 0, otherwise it isn't valid HTML
+                    if ((failure is 0 or report_object[page['parent']]['failures'][tester] < failure) and tester != 'vnu') or (tester == "vnu" and failure is not 0):
                         testers[tester]['live'] += 1
                         for mutation in page["mutations"]:
                             testers[tester]["operators"][mutation]["live"] += 1
@@ -121,7 +151,7 @@ def build_stats(report_object, equivalents, dupes, output):
     for tester in testers.keys():
         testers[tester]['mutation_score'] = testers[tester]['dead'] / float(mutants)
         for mutation in testers[tester]["operators"].keys():
-            testers[tester]["operators"]["mutation_score"] = testers[tester]["operators"]["dead"] / (testers[tester]["operators"]["dead"] + testers[tester]["operators"]["live"])
+            testers[tester]["operators"][mutation]["mutation_score"] = testers[tester]["operators"][mutation]["dead"] / (testers[tester]["operators"][mutation]["dead"] + testers[tester]["operators"][mutation]["live"])
 
 
     stats = {"testers": testers, "mutant_pages": mutants}
@@ -155,16 +185,18 @@ def stats_operator_table(stats, table_tex_file="operator_score.tex"):
 
 def page_mutations_table(report_object, table_tex_file="page_operators.tex"):
     pages = {}
+    page_names = []
     for _, page in report_object.items():
         initial_page = page["parent"]
         if initial_page not in pages.keys():
             pages[initial_page] = {}
+            page_names.append(initial_page)
         for operator in page["mutations"]:
             if operator not in pages[initial_page].keys():
-                page[initial_page][operator] = 0
+                pages[initial_page][operator] = 0
             pages[initial_page][operator] += 1
     make_resource("page_operators.tex.jinja2", table_tex_file,
-                  page_names=sorted(pages.keys()), pages=pages
+                  page_names=page_names, pages=pages
                  )
 
 def check_equivalence(pages, report_object, output):
@@ -247,3 +279,20 @@ if __name__ == '__main__':
     page_speeds, tester_speeds = speed.average(speed.load_speeds(argv.reports, sorted(stats['testers'].keys())))
     speed.make_page_speed_table(page_speeds, path.join(argv.output, "page_speed"))
     speed.make_tester_speed_table(tester_speeds, path.join(argv.output, "tester_speed"))
+
+    page_ignores, tester_ignores = load_ignores(os.path.join(argv.output, "pages-ignores.json"), sorted(stats['testers'].keys()))
+    # Page ignores
+    load_reports(argv.reports, page_ignores=page_ignores)
+    page_ignore_report = build_report(path.join(argv.output, "pageignore_summary.json"))
+    page_ignore_stats = build_stats(page_ignore_report, equivalence, treat_as_dupes, path.join(argv.output, "pageignore_stats.json"))
+    stats_mutation_table(page_ignore_stats, path.join(argv.output, "tester_score.tex"))
+    # Tool ignores
+    load_reports(argv.reports, tester_ignores=tester_ignores)
+    tester_ignore_report = build_report(path.join(argv.output, "testerignore_summary.json"))
+    tester_ignore_stats = build_stats(tester_ignore_report, equivalence, treat_as_dupes, path.join(argv.output, "testerignore_stats.json"))
+    stats_mutation_table(tester_ignore_stats, path.join(argv.output, "tester_score.tex"))
+    # Both ignores
+    load_reports(argv.reports, page_ignores=page_ignores, tester_ignores=tester_ignores)
+    ignore_report = build_report(path.join(argv.output, "ignore_summary.json"))
+    ignore_stats = build_stats(ignore_report, equivalence, treat_as_dupes, path.join(argv.output, "ignore_stats.json"))
+    stats_mutation_table(ignore_stats, path.join(argv.output, "tester_score.tex"))

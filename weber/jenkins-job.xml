@@ -37,7 +37,7 @@
       <command>bash $WATT_ROOT/henry/henry.sh</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-      <command>node $WATT_ROOT/ampere/ampere.js pages ${Pages} run/pages run/pages.json -m ${Mutations}</command>
+      <command>node $WATT_ROOT/ampere/ampere.js pages ${Pages} run/pages run/pages.json run/pages-ignores.json -m ${Mutations}</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command>node $WATT_ROOT/volt/volt.js run/pages run/results -t ${Testers}</command>

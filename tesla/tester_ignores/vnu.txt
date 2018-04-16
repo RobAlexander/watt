@@ -1,0 +1,2 @@
+The â€œlongdescâ€ attribute on the â€œimgâ€ element is obsolete. Use a regular â€œaâ€ element to link to the description.
+The â€œsummaryâ€ attribute on the â€œtableâ€ element is obsolete. Consider describing the structure of the â€œtableâ€ in a â€œcaptionâ€  element or in a â€œfigureâ€ element  containing the â€œtableâ€; or, simplify the structure of the â€œtableâ€ so that no description is needed.

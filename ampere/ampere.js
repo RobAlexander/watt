@@ -24,11 +24,12 @@ console.log(ampereName + " " + ampereVersion);
 
 // Command line processing
 const argv = require('yargs')
-             .command('pages <dir> <output> <descriptions>', 'Mutate all pages in a directory', (yargs) => {
+             .command('pages <dir> <output> <descriptions> <ignores>', 'Mutate all pages in a directory', (yargs) => {
                  yargs
                  .positional('dir', {describe: "The directory containing pages to mutate"})
                  .positional('output', {describe: "The directory to save mutants to"})
                  .positional('descriptions', {describe: "The file to save page descriptions to"})
+                 .positional('ignores', {describe: "The location to save the page specific tool ignores to"})
              })
              .command('$0 <page> <output>', 'Mutate a page', (yargs) => {
                  yargs
@@ -61,10 +62,11 @@ var generatedPagesDirectory = argv.output;
 // Construct list of pages to use
 var pagesList = [];
 if (argv.dir) {
-    var pagesDesc = {};
+    var pagesDesc = {}, pagesIgnores = {};
     fs.readdirSync(path.join(argv.dir, "desc")).forEach(page => {
         var pageName = page.split(".").slice(0, -1).join(".");  // General page name
         pagesDesc[pageName] = fs.readFileSync(path.join(argv.dir, "desc", pageName + ".desc"), "utf8");
+        pagesIgnores[pageName] = makePageIgnores(fs.readFileSync(path.join(argv.dir, "ignore", pageName + ".ignore"), "utf8").split("\n"));
         for (var i = 0; i < pageTypes.length; i++) {
             var pagePath = path.join(argv.dir, pageTypes[i], pageName + "." + pageTypes[i]);
             // Check the page exists and is a file and not a directory
@@ -78,6 +80,10 @@ if (argv.dir) {
     if (argv.descriptions) {
         makeDirectoryTree(argv.descriptions.split(path.sep).slice(0, -1).join(path.sep));
         fs.writeFileSync(argv.descriptions, JSON.stringify(pagesDesc));
+    }
+    if (argv.ignores) {
+        makeDirectoryTree(argv.ignores.split(path.sep).slice(0, -1).join(path.sep));
+        fs.writeFileSync(argv.ignores, JSON.stringify(pagesIgnores));
     }
 } else {
     pagesList = [argv.page]
@@ -170,4 +176,23 @@ function mutatePage(page, mutator, limit) {
     console.log("Mutated " + toMutate + " pages in " + (Date.now() - startTime) + " milliseconds");
 
     return mutants;
+}
+
+function makePageIgnores(lines) {
+    var ignores = {};
+    var currentTool = null;
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.startsWith("##")) {
+            // Change of tool
+            currentTool = line.split("##")[1];
+            ignores[currentTool] = [];
+        } else if (line.length == 0) {
+            // Do nothing
+        } else {
+            // Add new ignore
+            ignores[currentTool].push(line);
+        }
+    }
+    return ignores;
 }

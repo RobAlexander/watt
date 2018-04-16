@@ -1,0 +1,1 @@
+Ensures the first link on the page is a skip link
