@@ -179,7 +179,7 @@ def stats_operator_table(stats, table_tex_file="operator_score.tex"):
             total += score
         averages[operator] = total / len(operator_scores)
     make_resource("operator_score.tex.jinja2", table_tex_file,
-                  operators=sorted(scores.keys()), tools=sorted(stats["testers"].keys()),
+                  operators=sorted(scores.keys()), testers=sorted(stats["testers"].keys()),
                   scores=scores, averages=averages
                  )
 
