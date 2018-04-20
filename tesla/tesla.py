@@ -140,7 +140,8 @@ def build_stats(report_object, equivalents, dupes, output):
                         if mutation not in testers[tester]["operators"].keys():
                             testers[tester]["operators"][mutation] = {"live": 0, "dead": 0, "mutation_score": nan}
                     # VNU is a special case since it should always return 0, otherwise it isn't valid HTML
-                    if ((failure is 0 or report_object[page['parent']]['failures'][tester] < failure) and tester != 'vnu') or (tester == "vnu" and failure is not 0):
+                    parent_failures = report_object[page['parent']]['failures'][tester]
+                    if ((failure is 0 or failure <= parent_failures) and tester != 'vnu') or (tester == "vnu" and failure is not 0):
                         testers[tester]['live'] += 1
                         for mutation in page["mutations"]:
                             testers[tester]["operators"][mutation]["live"] += 1
