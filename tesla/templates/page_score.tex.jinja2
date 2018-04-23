@@ -1,0 +1,6 @@
+\begin{tabular}{ c {% for tester in testers %}| c {% endfor %}| c }
+    \textbf{Page} {% for tester in testers %}& \textbf{ {{ tester }}}{% endfor %}& \textit{\textbf{Average}}\\
+    {% for page in pages %}\hline
+    {{ page }} {% for tester in testers %}& {{ scores[page][tester] | round_if_float(2) | tex_escape }}{% endfor %}& \textit{ {{ averages[page] | round_if_float(2) | tex_escape }}}\\
+    {% endfor %}
+\end{tabular}

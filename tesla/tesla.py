@@ -131,28 +131,35 @@ def build_stats(report_object, equivalents, dupes, output):
 
     for page_name, page in report_object.items():
         if page_name not in dupes and not equivalents[page_name]:  # Don't do anything with duplicates or equivalents
-            if page['parent'] is not None:
+            parent_page = page['parent']
+            if parent_page is not None:
                 mutants += 1
                 for tester, failure in page['failures'].items():
                     if tester not in testers.keys():
-                        testers[tester] = {"live": 0, "dead": 0, "mutation_score": nan, "operators": {}}
+                        testers[tester] = {"live": 0, "dead": 0, "mutation_score": nan, "operators": {}, "pages": {}}
                     for mutation in page["mutations"]:
                         if mutation not in testers[tester]["operators"].keys():
                             testers[tester]["operators"][mutation] = {"live": 0, "dead": 0, "mutation_score": nan}
+                    if parent_page not in testers[tester]["pages"].keys():
+                        testers[tester]["pages"][parent_page] = {"live": 0, "dead": 0, "mutation_score": nan}
                     # VNU is a special case since it should always return 0, otherwise it isn't valid HTML
-                    parent_failures = report_object[page['parent']]['failures'][tester]
+                    parent_failures = report_object[parent_page]['failures'][tester]
                     if ((failure is 0 or failure <= parent_failures) and tester != 'vnu') or (tester == "vnu" and failure is not 0):
                         testers[tester]['live'] += 1
                         for mutation in page["mutations"]:
                             testers[tester]["operators"][mutation]["live"] += 1
+                        testers[tester]["pages"][parent_page]['live'] += 1
                     else:
                         testers[tester]['dead'] += 1
                         for mutation in page["mutations"]:
                             testers[tester]["operators"][mutation]["dead"] += 1
+                        testers[tester]["pages"][parent_page]['dead'] += 1
     for tester in testers.keys():
         testers[tester]['mutation_score'] = testers[tester]['dead'] / float(mutants)
         for mutation in testers[tester]["operators"].keys():
             testers[tester]["operators"][mutation]["mutation_score"] = testers[tester]["operators"][mutation]["dead"] / (testers[tester]["operators"][mutation]["dead"] + testers[tester]["operators"][mutation]["live"])
+        for page in testers[tester]["pages"].keys():
+            testers[tester]["pages"][page]['mutation_score'] = testers[tester]["pages"][page]['dead'] / (testers[tester]["pages"][page]['dead'] + testers[tester]["pages"][page]['live'])
 
 
     stats = {"testers": testers, "mutant_pages": mutants}
@@ -183,6 +190,32 @@ def stats_operator_table(stats, table_tex_file="operator_score.tex"):
                   operators=sorted(scores.keys()), testers=sorted(stats["testers"].keys()),
                   scores=scores, averages=averages
                  )
+
+def stats_pages_table(stats, table_tex_file="pages_score.tex", csv_file="page_scores.csv"):
+    scores = {}
+    averages = {}
+    for tester, tester_stats in stats["testers"].items():
+        for page_name, page_stats in tester_stats["pages"].items():
+            if page_name not in scores.keys():
+                scores[page_name] = {}
+            scores[page_name][tester] = page_stats["mutation_score"]
+    for page_name, page_scores in scores.items():
+        total = 0
+        for tester, score in page_scores.items():
+            total += score
+        averages[page_name] = total / len(page_scores)
+    make_resource("page_score.tex.jinja2", table_tex_file,
+                  pages=sorted(scores.keys()), testers=sorted(stats["testers"].keys()),
+                  scores=scores, averages=averages
+                 )
+    if csv_file is not None:
+        testers_list = stats["testers"].keys()
+        with open(csv_file, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([".PageName"] + [tester for tester in testers_list])
+            for page, page_scores in scores.items():
+                writer.writerow([page] + [page_scores[tester] for tester in testers_list])
+
 
 def page_mutations_table(report_object, table_tex_file="page_operators.tex"):
     pages = {}
@@ -275,6 +308,7 @@ if __name__ == '__main__':
     pages_table(path.join(argv.output, "pages.json"), path.join(argv.output, "pages.tex"))
     stats_mutation_table(stats, path.join(argv.output, "tester_score.tex"))
     stats_operator_table(stats, path.join(argv.output, "operator_score.tex"))
+    stats_pages_table(stats, path.join(argv.output, "page_score.tex"), path.join(argv.output, "page_score.csv"))
     page_mutations_table(report, path.join(argv.output, "page_operators.tex"))
 
     page_speeds, tester_speeds = speed.average(speed.load_speeds(argv.reports, sorted(stats['testers'].keys())))
