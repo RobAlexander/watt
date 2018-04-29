@@ -63,3 +63,17 @@ If changes to the config file, or any file referenced from it, are made outside 
 ## Security
 
 Everything uses very weak passwords (in some cases none at all) so should never be given external facing access.  Whilst the damage that could be done by one of th VMs being exposed to the internet is limited files in the synced directories it is still far better not to give it any at all.
+
+## License
+
+Third-party libraries and software used within this tool are available under a variety of licenses. No third-party source code or binary is included within this tool but is installed by package management systems during setup.
+
+* MIT - express, checksum, yargs, vnu-jar, xmldoc, jsdom, jquery, forever, jenkins, nodejs
+* LGPL - Pa11y (This tool is accessed dynamically and may be replaced with a suitable equivalent in `volt/package.json`)
+* MPL - axe-core
+* Apache - Accessibility Developer Tools, requests, ant, apache2
+* BSD - flask, python-jenkins, pandas, scipy, numpy, jinja2, phantomjs, unzip
+* EPL - epsilon
+* PHP - php5
+* Python - python3
+* GPL - AChecker (called via exposed HTTP API only), default-jdk (Installed as software component and called only via scripts, may be replaced in `vagrant_setup/packages/jdk/global.sh`), MySQL (Installed as software component and called only via scripts, may be replaced in `vagrant_setup/packages/mysql/global.sh`)
