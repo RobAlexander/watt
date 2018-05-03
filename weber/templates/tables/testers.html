@@ -10,7 +10,7 @@
         {% for tester, data in job['testers'].items() %}
             <tr data-success="{{ data['mutation_score'] == 1.0 }}">
                 <td><a href="{{ url_for('job_tester_info', job=job['number'], tester=tester) }}">{{ tester }}</a></td>
-                <td>{{ data['mutation_score'] }}</td>
+                <td>{{ data['mutation_score'] | round }}</td>
                 <td>{{ data['live'] }}</td>
             </tr>
         {% endfor %}

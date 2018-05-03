@@ -42,6 +42,10 @@ def b64encode(value):
 def len_filter(value):
     return len(value)
 
+@app.template_filter('round')
+def round_filter(value):
+    return round(value, 2)
+
 
 # Helper methods
 
